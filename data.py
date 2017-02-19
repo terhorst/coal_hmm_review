@@ -3,13 +3,37 @@ import os
 import pysam
 import collections
 import pickle
+import re
 
-import original_data
 from config import *
+import util
 
-class VCFPopulationMap(luigi.Task):
+## Files provided by our collaborators
+class OriginalVCF(util.OriginalFile):
+    filename = "PASS_SNP.vcf.gz"
+
+class OriginalCentromeres(util.OriginalFile):
+    filename = "centromeres.bed.gz"
+
+class OriginalPopulations(util.OriginalFile):
+    filename = "populations.index"
+
+## Transformed files, with indexes
+class IndexedVCF(util.Tabixed):
+    target = OriginalVCF()
+
+class IndexedCentromeres(util.Tabixed):
+    target = OriginalCentromeres()
+
+## Derived data sets
+class PopulationMap(luigi.Task):
+    """
+    Dict populations => samples. Restricted to have only samples / pops
+    that are actually in the VCF.
+    """
     def requires(self):
-        return original_data.FormattedOriginalData()
+        return {"vcf": IndexedVCF(), 
+                "populations": OriginalPopulations()}
 
     def output(self):
         return luigi.LocalTarget(
@@ -38,10 +62,11 @@ class VCFPopulationMap(luigi.Task):
         pickle.dump(pops, open(self.output().path, "wb"), -1)
 
 
-class _ConvertBase(luigi.Task):
+class _VCFConverter(luigi.Task):
     def requires(self):
-        ret = FormattedOriginalData()
-        ret['populations'] = VCFPopulationMap()
+        return {"vcf": IndexedVCF(), 
+                "centromeres": IndexedCentromeres(),
+                "populations": Populations()}
         return ret
 
     @property
@@ -49,7 +74,7 @@ class _ConvertBase(luigi.Task):
         return pickle.load(open(self.input()['populations'].path, "rb"))
 
 
-class VCF2SMC(_ConvertBase):
+class VCF2SMC(_VCFConverter):
     population = luigi.Parameter()
     contig = luigi.Parameter()
     distinguished = luigi.Parameter()
@@ -58,7 +83,8 @@ class VCF2SMC(_ConvertBase):
         return luigi.LocalTarget(
                 os.path.join(
                     GlobalConfig().output_directory, "smc", "data",
-                    self.population, "{}.{}.txt.gz".format(self.distinguihsed, self.contig)))
+                    self.population, 
+                    "{}.{}.txt.gz".format(self.distinguished, self.contig)))
         
     def run(self):
         # Composite likelihood over first 3 individuals
@@ -74,13 +100,13 @@ class VCF2SMC(_ConvertBase):
                 "{}:{}".format(self.population, ",".join(undistinguished)))
          
 
-class VCF2Momi(_ConvertBase):
+class VCF2Momi(_VCFConverter):
     contig = luigi.Parameter()
 
     def output(self):
         return luigi.LocalTarget(
-            os.path.join(GlobalConfig().output_directory,
-                "momi",
+            os.path.join(GlobalConfig().output_directory, 
+                "momi", 
                 "data", self.contig + ".dat"))
 
     def run(self):

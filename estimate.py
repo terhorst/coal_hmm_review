@@ -1,12 +1,12 @@
 import os
 import luigi
 
-import convert_data
+import data
 from config import *
 
 class EstimateAllSizeHistories(luigi.Task):
     def requires(self):
-        return convert_data.VCFPopulationMap()
+        return data.PopulationMap()
 
     def run(self):
         pops = pickle.load(open(self.input(), "rb"))
@@ -16,7 +16,7 @@ class EstimateSizeHistory(luigi.Task):
     population = luigi.Parameter()
 
     def requires(self):
-        return convert_data.VCFPopulationMap()
+        return data.PopulationMap()
 
     @property
     def _output_directory(self):
@@ -36,13 +36,13 @@ class EstimateSizeHistory(luigi.Task):
         samples = self.populations[self.population]
         smc_data_files = yield [
                 convert_data.VCF2SMC(
-                    contig=str(c),
-                    population=self.population,
-                    distinguished=s)
+                    contig=str(c), 
+                    population=self.population, 
+                    distinguished=s) 
                 for c in range(1, 23)
                 for s in samples[:3]]
-        smc('estimate',
-                '--theta', .00025, '--reg', 10, '--blocks', 1,
+        smc('estimate', 
+                '--theta', .00025, '--reg', 10, '--blocks', 1, 
                 "--knots", 20,
                 '--no-initialize',
                 '-v', '-o', self._output_directory,
