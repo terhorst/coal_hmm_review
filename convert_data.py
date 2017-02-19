@@ -1,56 +1,87 @@
 import luigi
-import sh
 import os
 import pysam
 import collections
 import pickle
 
-from original_data import VCFTask
-import config
+import original_data
+from config import *
 
-smc = sh.Command("smc++")
-
-class ConvertAll(VCFTask):
-    'Catch-all task to batch convert everything at once'
-
-    def run(self):
-        # This must be dynamic because we depend on self.populations
-        tasks = []
-        for chrom in range(1, 23):
-            chrom = str(chrom)
-            tasks.append(VCF2Momi(contig=chrom))
-            for pop in self.populations:
-                tasks.append(VCF2SMC(contig=chrom, population=pop))
-        yield tasks
-
-
-class VCF2SMC(VCFTask):
-    population = luigi.Parameter()
-    contig = luigi.Parameter()
+class VCFPopulationMap(luigi.Task):
+    def requires(self):
+        return original_data.FormattedOriginalData()
 
     def output(self):
         return luigi.LocalTarget(
                 os.path.join(
-                    config.GlobalConfig().output_directory, "smc", 
-                    self.population, self.contig + ".txt.gz"))
+                    GlobalConfig().output_directory,
+                    "vcf_population_map.dat"))
+
+    def run(self):
+        pops = {}
+        with open(self.input()['populations'].path, "rt") as f:
+            fields = next(f)[1:].strip().split("\t")
+            for line in f:
+                # The provided spreadsheet is malformatted. We can
+                # restrict to the first len(fields) entries and the
+                # last will be the population ID, with Mbororo Fulani
+                # truncated to Mbororo.
+                record = dict(zip(fields,
+                                  re.split(r"\s+", line.strip())[:len(fields)]
+                                  ))
+                pops.setdefault(record['Population'].replace(
+                    " ", "_"), []).append(record['SampleID'])
+        with pysam.VariantFile(self.input()['vcf'].path) as vcf:
+            vcf_samples = set(vcf.header.samples)
+        pops = {pop: vcf_samples & set(samples) for pop, samples in pops.items()}
+        pops = {pop: samples for pop, samples in pops.items() if samples}
+        pickle.dump(pops, open(self.output().path, "wb"), -1)
+
+
+class _ConvertBase(luigi.Task):
+    def requires(self):
+        ret = FormattedOriginalData()
+        ret['populations'] = VCFPopulationMap()
+        return ret
+
+    @property
+    def populations(self):
+        return pickle.load(open(self.input()['populations'].path, "rb"))
+
+
+class VCF2SMC(_ConvertBase):
+    population = luigi.Parameter()
+    contig = luigi.Parameter()
+    distinguished = luigi.Parameter()
+
+    def output(self):
+        return luigi.LocalTarget(
+                os.path.join(
+                    GlobalConfig().output_directory, "smc", "data",
+                    self.population, "{}.{}.txt.gz".format(self.distinguihsed, self.contig)))
         
     def run(self):
+        # Composite likelihood over first 3 individuals
         self.output().makedirs()
         samples = self.populations[self.population]
+        undistinguished = set(samples) - set([self.distinguished])
         smc("vcf2smc", "-m", self.input()['centromeres'].path,
                 "--drop-first-last",
+                '-d', self.distinguished, self.distinguished,
                 self.input()['vcf'].path, 
                 self.output().path,
                 self.contig,
-                "{}:{}".format(self.population, ",".join(samples)))
+                "{}:{}".format(self.population, ",".join(undistinguished)))
          
 
-class VCF2Momi(VCFTask):
+class VCF2Momi(_ConvertBase):
     contig = luigi.Parameter()
 
     def output(self):
         return luigi.LocalTarget(
-            os.path.join(config.GlobalConfig().output_directory, "momi", self.contig + ".dat"))
+            os.path.join(GlobalConfig().output_directory,
+                "momi",
+                "data", self.contig + ".dat"))
 
     def run(self):
         self.output().makedirs()
