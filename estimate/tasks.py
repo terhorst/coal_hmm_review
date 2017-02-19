@@ -1,8 +1,11 @@
 import os
 import luigi
+import pickle
+import collections
 
 import data
 from config import *
+from . import momi
 
 class EstimateAllSizeHistories(luigi.Task):
     def requires(self):
@@ -19,6 +22,10 @@ class EstimateSizeHistory(luigi.Task):
         return data.PopulationMap()
 
     @property
+    def population_map(self):
+        return pickle.load(open(self.input().path, "rb"))
+
+    @property
     def _output_directory(self):
         return os.path.join(
                 GlobalConfig().output_directory,
@@ -33,14 +40,14 @@ class EstimateSizeHistory(luigi.Task):
 
     def run(self):
         # Create data sets from composite likelihood
-        samples = self.populations[self.population]
+        samples = self.population_map[self.population]
         smc_data_files = yield [
-                convert_data.VCF2SMC(
+                data.VCF2SMC(
                     contig=str(c), 
                     population=self.population, 
                     distinguished=s) 
-                for c in range(1, 23)
-                for s in samples[:3]]
+                for c in GlobalConfig().contigs
+                for s in list(samples)[:3]]
         smc('estimate', 
                 '--theta', .00025, '--reg', 10, '--blocks', 1, 
                 "--knots", 20,
@@ -53,14 +60,22 @@ class PairwiseMomiAnalysis(luigi.Task):
     populations = luigi.ListParameter()
 
     def requires(self):
-        return [convert_data.VCF2Momi(contig=c) for c in range(1, 23)]
+        return {'population_map': data.PopulationMap(),
+                'sfss': [data.VCF2Momi(contig=c) for c in GlobalConfig().contigs]}
 
-    def build_splits(self):
-        c = collections.Counter()
-        for f in self.input():
+    def build_sfs(self):
+        sfs = collections.Counter()
+        n = None
+        for f in self.input()['sfss']:
             d = pickle.load(open(f.path, "rb"))
-            i = [d['pops'].index(p) for p in self.pops]
-            c[None] = d['sfs'][None]
+            if n is None:
+                n = d['n']
+            else:
+                np.assert_all_equal(n, d['n'])
+                print(n)
+                aoeu
+            i = [d['populations'].index(p) for p in self.populations]
+            sfs[None] = d['sfs'][None]
             del d['sfs'][None]
             for entry in d['sfs']:
                 key = (entry[i[0]], entry[i[1]])
@@ -68,7 +83,10 @@ class PairwiseMomiAnalysis(luigi.Task):
                     (key[0][1] == key[1][1] == 0)):
                     # Recode sites which are monomorphic in the subsample
                     key = None
-                c[key] += d['sfs'][entry]
+                sfs[key] += d['sfs'][entry]
+        return sfs, n
 
     def run(self):
-        pass
+        sfs, n = self.build_sfs()
+        mle = momi.PairwiseMomiEstimator(sfs, n)
+        mle.run()

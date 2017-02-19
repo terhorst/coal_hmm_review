@@ -57,7 +57,7 @@ class PopulationMap(luigi.Task):
                     " ", "_"), []).append(record['SampleID'])
         with pysam.VariantFile(self.input()['vcf'].path) as vcf:
             vcf_samples = set(vcf.header.samples)
-        pops = {pop: vcf_samples & set(samples) for pop, samples in pops.items()}
+        pops = {pop: list(vcf_samples & set(samples)) for pop, samples in pops.items()}
         pops = {pop: samples for pop, samples in pops.items() if samples}
         pickle.dump(pops, open(self.output().path, "wb"), -1)
 
@@ -66,7 +66,7 @@ class _VCFConverter(luigi.Task):
     def requires(self):
         return {"vcf": IndexedVCF(), 
                 "centromeres": IndexedCentromeres(),
-                "populations": Populations()}
+                "populations": PopulationMap()}
         return ret
 
     @property
@@ -97,7 +97,7 @@ class VCF2SMC(_VCFConverter):
                 self.input()['vcf'].path, 
                 self.output().path,
                 self.contig,
-                "{}:{}".format(self.population, ",".join(undistinguished)))
+                "{}:{}".format(self.population, ",".join(samples)))
          
 
 class VCF2Momi(_VCFConverter):
@@ -114,7 +114,9 @@ class VCF2Momi(_VCFConverter):
         sfs = collections.Counter()
         pd = self.populations
         pops = list(self.populations)
+        n = {pop: 2 * len(pd[pop]) for pop in pops}
         with pysam.VariantFile(self.input()['vcf'].path) as vcf:
+            print(vcf.header)
             for record in vcf.fetch(contig=self.contig):
                 d = {}
                 for pop in pops:
@@ -127,4 +129,4 @@ class VCF2Momi(_VCFConverter):
                 k = tuple([d[pop] for pop in pops])
                 sfs[k] += 1
             sfs[None] = vcf.header.contigs[self.contig].length - sum(sfs.values())
-        pickle.dump({'sfs': sfs, 'pops': pops}, open(self.output().path, "wb"), -1)
+        pickle.dump({'sfs': sfs, 'populations': pops, 'n': n}, open(self.output().path, "wb"), -1)
