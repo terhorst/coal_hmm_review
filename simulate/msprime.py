@@ -50,33 +50,3 @@ class MsprimeMomiSimulator:
         sim.dump(output_path)
 
 
-class MsprimeToVcf(luigi.Task):
-    msprime_simulation = luigi.TaskParameter()
-    sample_names = luigi.Parameter()
-
-    def _requires(self):
-        yield GlobalConfig().local_target(
-                self.input().path + ".vcf.gz.tbi")
-        yield luigi.Task._requires(self)
-
-    def requires(self):
-        return self.msprime_simulation
-
-    def output(self):
-        return GlobalConfig().local_target(
-                self.input().path + ".vcf.gz")
-
-    def run(self):
-        new_samples = ['msp_%d %s' % t for t in enumerate(self.sample_names)]
-        tree_seq = msprime.load(self.input().path)
-        vcf_path = self.output().path[:-3]
-        with open(vcf_path, "wt") as f:  # omit the .gz
-            tree_seq.write_vcf(f, 2)
-        with contextlib.ExitStack() as stack:
-            sample_renames = stack.enter_context(tempfile.NamedTemporaryFile("wt"))
-            out_vcf_gz = stack.enter_context(open(self.output().path, 'wb'))
-            open(sample_renames.name, "wt").write("\n".join(new_samples))
-            bgzip(bcftools('reheader', '-s', 
-                sample_renames.name, vcf_path, _piped=True), 
-                    "-c", _out=out_vcf_gz)
-        tabix(self.output().path)

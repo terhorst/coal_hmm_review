@@ -79,25 +79,18 @@ class VCF2SMC(_VCFConverter):
                 self.contig,
                 "{}:{}".format(self.population, ",".join(samples)))
          
-
 class VCF2Momi(_VCFConverter):
-    vcf_provider = luigi.TaskParameter()
-
-    def requires():
-        return self.vcf_provider
+    vcf_path = luigi.Parameter()
 
     def output(self):
-        return GlobalConfig().local_target(
-                self.input().path + 
-                "momi.dat")
+        return GlobalConfig().local_target(self.vcf_path + ".momi.dat")
 
     def run(self):
         self.output().makedirs()
         sfs = collections.Counter()
         pd = self.populations
         pops = list(self.populations)
-        with pysam.VariantFile(self.input().path) as vcf:
-            print(vcf.header)
+        with pysam.VariantFile(self.vcf_path) as vcf:
             for record in vcf.fetch():
                 d = {}
                 for pop in pops:

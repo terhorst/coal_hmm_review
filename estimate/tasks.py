@@ -3,13 +3,14 @@ import luigi
 import pickle
 import collections
 
-import data
+import data.tasks
+import estimate.momi
 from config import *
 from . import momi
 
 class EstimateAllSizeHistories(luigi.Task):
     def requires(self):
-        return data.PopulationMap()
+        return data.tasks.PopulationMap()
 
     def run(self):
         pops = pickle.load(open(self.input(), "rb"))
@@ -19,7 +20,7 @@ class EstimateSizeHistory(luigi.Task):
     population = luigi.Parameter()
 
     def requires(self):
-        return data.PopulationMap()
+        return data.tasks.PopulationMap()
 
     @property
     def population_map(self):
@@ -42,7 +43,7 @@ class EstimateSizeHistory(luigi.Task):
         # Create data sets from composite likelihood
         samples = self.population_map[self.population]
         smc_data_files = yield [
-                data.VCF2SMC(
+                data.tasks.VCF2SMC(
                     contig=str(c), 
                     population=self.population, 
                     distinguished=s) 
@@ -58,31 +59,23 @@ class EstimateSizeHistory(luigi.Task):
 
 class PairwiseMomiAnalysis(luigi.Task):
     populations = luigi.ListParameter()
-    data_provider = luigi.TaskParameter()
+    data_set_paths = luigi.ListParameter()
 
     def requires(self):
-        return {'population_map': data.PopulationMap(),
-                'sfs': self.data_provider}
+        return {'population_map': data.tasks.PopulationMap()}
 
     def build_sfs(self):
         sfs = collections.Counter()
-        n = None
-        for f in self.input()['sfss']:
-            d = pickle.load(open(f.path, "rb"))
-            if n is None:
-                n = d['n']
-            else:
-                assert n == d['n']
-            i = [d['populations'].index(p) for p in self.populations]
-            sfs[None] = d['sfs'][None]
-            del d['sfs'][None]
-            for entry in d['sfs']:
+        for path in self.data_set_paths:
+            data_set = pickle.load(open(path, "rb"))
+            n = data_set['n']
+            i = [data_set['populations'].index(p) for p in self.populations]
+            for entry in data_set['sfs']:
                 key = (entry[i[0]], entry[i[1]])
                 if ((key[0][0] == key[1][0] == 0) or 
                     (key[0][1] == key[1][1] == 0)):
-                    # Recode sites which are monomorphic in the subsample
-                    key = None
-                sfs[key] += d['sfs'][entry]
+                    continue
+                sfs[key] += data_set['sfs'][entry]
         return sfs, n
 
     def output(self):
@@ -93,10 +86,11 @@ class PairwiseMomiAnalysis(luigi.Task):
         self.output().makedirs()
         sfs, n = self.build_sfs()
         n = [n[pop] for pop in self.populations]
-        mle = momi.PairwiseMomiEstimator(self.populations, sfs, n)
+        mle = estimate.momi.PairwiseMomiEstimator(self.populations, sfs, n)
         res = mle.run()
         mle_events = mle.events(*res.x)
         pickle.dump(
-                {'populations': list(self.populations), 'mle_events': mle_events, 'n': n},
+                {'populations': list(self.populations), 
+                 'mle_events': mle_events, 'n': n},
                 open(self.output().path, "wb"),
                 -1)
