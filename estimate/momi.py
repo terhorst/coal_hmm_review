@@ -61,9 +61,7 @@ class PairwiseMomiEstimator:
         sdict = {k: THETA * v for k, v in zip(self.configs, eSFS)}
         assert sum(sdict.values()) < .1
         sdict[None] = 1. - THETA * eTot
-        print(sdict)
         ll = sum(k * anp.log(sdict[sp]) for sp, k in self.sfs.items())
-        print(x, ll)
         return -ll
 
     def scale(self, x):

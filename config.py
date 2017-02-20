@@ -17,6 +17,8 @@ def unpickle(task):
 
 class GlobalConfig(luigi.Config):
     contigs = list(map(str, range(1, 2)))
+    bootstrap_replicates = luigi.IntParameter(1)
+    chromosomes_per_bootstrap = luigi.IntParameter(30)
     input_directory = luigi.Parameter()
     output_directory = luigi.Parameter()
 

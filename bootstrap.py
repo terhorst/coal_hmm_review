@@ -4,13 +4,16 @@ import collections
 import sys
 
 from config import *
-import estimate.tasks
+import tasks
 
-@luigi.util.inherits(estimate.tasks.PairwiseMomiAnalysisFromSimulatedData)
+@luigi.util.inherits(tasks.PairwiseMomiAnalysisFromSimulatedData)
 class BootstrapAnalysis(luigi.Task):
     def requires(self):
+        np.random.seed(self.seed)
         return [
-                self.clone(estimate.tasks.PairwiseMomiAnalysisFromSimulatedData)
+                self.clone(
+                    tasks.PairwiseMomiAnalysisFromSimulatedData,
+                    seed=np.random.randint(2 ** 32))
                 for _ in range(GlobalConfig().bootstrap_replicates)
                 ]
 
@@ -18,12 +21,11 @@ class BootstrapAnalysis(luigi.Task):
         for rep in self.input():
             result = unpickle(rep)
             print(result)
-            aoeu
 
     def output(self):
         return GlobalConfig().local_target(
                 "bootstrap", 
                 self.seed, 
                 "-".join(self.populations),
-                "estimates.dat")
+                "analysis.dat")
 

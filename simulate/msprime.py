@@ -34,8 +34,7 @@ class MsprimeMomiSimulator:
     def run(self, seed, output_path, length=int(1e5)):
         pc = [msprime.PopulationConfiguration(sample_size=n) for n in self.n]
         ev = self.events()
-        pprint(ev)
-        if True:
+        if False:
             msprime.DemographyDebugger(Ne=N0,
                     population_configurations=pc,
                     demographic_events=ev).print_history()
