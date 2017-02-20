@@ -5,8 +5,17 @@ import scipy.optimize
 from pprint import pprint
 import momi
 import pdb
+import attr
 
 from config import *
+
+@attr.s
+class TwoPopulationDemography:
+    params = attr.ib()
+    n = attr.ib()
+    populations = attr.ib()
+    events = attr.ib()
+
 
 class PairwiseMomiEstimator:
     """
@@ -67,4 +76,9 @@ class PairwiseMomiEstimator:
         bounds += [(1e2 / (2. * N0), 1e6 / (2. * N0))] * 3
         x0 = np.mean(bounds, axis=1)
         grad = autograd.grad(self.negloglik, 0)
-        return scipy.optimize.minimize(self.negloglik, jac=grad, bounds=bounds, x0=x0)
+        res = scipy.optimize.minimize(self.negloglik, jac=grad, bounds=bounds, x0=x0)
+        return TwoPopulationDemography(
+                params=res.x,
+                n=self.n, 
+                populations=self.populations, 
+                events=self.events(*res.x))

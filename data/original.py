@@ -17,4 +17,3 @@ class IndexedVCF(util.Tabixed):
 
 class IndexedCentromeres(util.Tabixed):
     target = OriginalCentromeres()
-

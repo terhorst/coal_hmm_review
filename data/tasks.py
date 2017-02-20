@@ -1,4 +1,5 @@
 import luigi
+import luigi.util
 import os
 import pysam
 import collections
@@ -6,6 +7,7 @@ import pickle
 import re
 
 from config import *
+import simulate.tasks
 import data.original
 import util
 
@@ -79,18 +81,16 @@ class VCF2SMC(_VCFConverter):
                 self.contig,
                 "{}:{}".format(self.population, ",".join(samples)))
          
-class VCF2Momi(_VCFConverter):
-    vcf_path = luigi.Parameter()
-
+class _VCF2Momi(_VCFConverter):
     def output(self):
-        return GlobalConfig().local_target(self.vcf_path + ".momi.dat")
+        return luigi.LocalTarget(self.input().path + ".momi.dat")
 
     def run(self):
         self.output().makedirs()
         sfs = collections.Counter()
         pd = self.populations
         pops = list(self.populations)
-        with pysam.VariantFile(self.vcf_path) as vcf:
+        with pysam.VariantFile(self.input().path) as vcf:
             for record in vcf.fetch():
                 d = {}
                 for pop in pops:
@@ -105,3 +105,11 @@ class VCF2Momi(_VCFConverter):
         n = {pop: 2 * len(pd[pop]) for pop in pops}
         pickle.dump({'sfs': sfs, 'populations': pops, 'n': n}, 
                      open(self.output().path, "wb"), -1)
+
+class OriginalVCFToMomi(_VCF2Momi):
+    def requires(self):
+        return data.original.IndexedVCF()
+
+@luigi.util.requires(simulate.tasks.MsprimeToVcf)
+class SimulatedVCFToMomi(_VCF2Momi):
+    pass

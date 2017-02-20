@@ -48,5 +48,3 @@ class MsprimeMomiSimulator:
                 Ne=N0,
                 length=length)
         sim.dump(output_path)
-
-
