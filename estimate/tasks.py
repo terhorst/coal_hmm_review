@@ -58,10 +58,11 @@ class EstimateSizeHistory(luigi.Task):
 
 class PairwiseMomiAnalysis(luigi.Task):
     populations = luigi.ListParameter()
+    data_provider = luigi.TaskParameter()
 
     def requires(self):
         return {'population_map': data.PopulationMap(),
-                'sfss': [data.VCF2Momi(contig=c) for c in GlobalConfig().contigs]}
+                'sfs': self.data_provider}
 
     def build_sfs(self):
         sfs = collections.Counter()
@@ -71,9 +72,7 @@ class PairwiseMomiAnalysis(luigi.Task):
             if n is None:
                 n = d['n']
             else:
-                np.assert_all_equal(n, d['n'])
-                print(n)
-                aoeu
+                assert n == d['n']
             i = [d['populations'].index(p) for p in self.populations]
             sfs[None] = d['sfs'][None]
             del d['sfs'][None]
@@ -86,7 +85,18 @@ class PairwiseMomiAnalysis(luigi.Task):
                 sfs[key] += d['sfs'][entry]
         return sfs, n
 
+    def output(self):
+        return GlobalConfig().local_target(
+                "momi", "estimates", "-".join(self.populations) + ".dat")
+
     def run(self):
+        self.output().makedirs()
         sfs, n = self.build_sfs()
-        mle = momi.PairwiseMomiEstimator(sfs, n)
-        mle.run()
+        n = [n[pop] for pop in self.populations]
+        mle = momi.PairwiseMomiEstimator(self.populations, sfs, n)
+        res = mle.run()
+        mle_events = mle.events(*res.x)
+        pickle.dump(
+                {'populations': list(self.populations), 'mle_events': mle_events, 'n': n},
+                open(self.output().path, "wb"),
+                -1)

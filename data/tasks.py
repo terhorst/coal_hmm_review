@@ -6,24 +6,8 @@ import pickle
 import re
 
 from config import *
+import data.original
 import util
-
-## Files provided by our collaborators
-class OriginalVCF(util.OriginalFile):
-    filename = "PASS_SNP.vcf.gz"
-
-class OriginalCentromeres(util.OriginalFile):
-    filename = "centromeres.bed.gz"
-
-class OriginalPopulations(util.OriginalFile):
-    filename = "populations.index"
-
-## Transformed files, with indexes
-class IndexedVCF(util.Tabixed):
-    target = OriginalVCF()
-
-class IndexedCentromeres(util.Tabixed):
-    target = OriginalCentromeres()
 
 ## Derived data sets
 class PopulationMap(luigi.Task):
@@ -32,14 +16,11 @@ class PopulationMap(luigi.Task):
     that are actually in the VCF.
     """
     def requires(self):
-        return {"vcf": IndexedVCF(), 
-                "populations": OriginalPopulations()}
+        return {"vcf": data.original.IndexedVCF(), 
+                "populations": data.original.OriginalPopulations()}
 
     def output(self):
-        return luigi.LocalTarget(
-                os.path.join(
-                    GlobalConfig().output_directory,
-                    "vcf_population_map.dat"))
+        return GlobalConfig().local_target("vcf_population_map.dat")
 
     def run(self):
         pops = {}
@@ -64,8 +45,8 @@ class PopulationMap(luigi.Task):
 
 class _VCFConverter(luigi.Task):
     def requires(self):
-        return {"vcf": IndexedVCF(), 
-                "centromeres": IndexedCentromeres(),
+        return {"vcf": data.original.IndexedVCF(), 
+                "centromeres": data.original.IndexedCentromeres(),
                 "populations": PopulationMap()}
         return ret
 
@@ -80,11 +61,10 @@ class VCF2SMC(_VCFConverter):
     distinguished = luigi.Parameter()
 
     def output(self):
-        return luigi.LocalTarget(
-                os.path.join(
-                    GlobalConfig().output_directory, "smc", "data",
+        return GlobalConfig().local_target(
+                    "smc", "data",
                     self.population, 
-                    "{}.{}.txt.gz".format(self.distinguished, self.contig)))
+                    "{}.{}.txt.gz".format(self.distinguished, self.contig))
         
     def run(self):
         # Composite likelihood over first 3 individuals
@@ -101,23 +81,24 @@ class VCF2SMC(_VCFConverter):
          
 
 class VCF2Momi(_VCFConverter):
-    contig = luigi.Parameter()
+    vcf_provider = luigi.TaskParameter()
+
+    def requires():
+        return self.vcf_provider
 
     def output(self):
-        return luigi.LocalTarget(
-            os.path.join(GlobalConfig().output_directory, 
-                "momi", 
-                "data", self.contig + ".dat"))
+        return GlobalConfig().local_target(
+                self.input().path + 
+                "momi.dat")
 
     def run(self):
         self.output().makedirs()
         sfs = collections.Counter()
         pd = self.populations
         pops = list(self.populations)
-        n = {pop: 2 * len(pd[pop]) for pop in pops}
-        with pysam.VariantFile(self.input()['vcf'].path) as vcf:
+        with pysam.VariantFile(self.input().path) as vcf:
             print(vcf.header)
-            for record in vcf.fetch(contig=self.contig):
+            for record in vcf.fetch():
                 d = {}
                 for pop in pops:
                     gts = [x for sample in pd[pop]
@@ -128,5 +109,6 @@ class VCF2Momi(_VCFConverter):
                     d[pop] = (n - a, a)
                 k = tuple([d[pop] for pop in pops])
                 sfs[k] += 1
-            sfs[None] = vcf.header.contigs[self.contig].length - sum(sfs.values())
-        pickle.dump({'sfs': sfs, 'populations': pops, 'n': n}, open(self.output().path, "wb"), -1)
+        n = {pop: 2 * len(pd[pop]) for pop in pops}
+        pickle.dump({'sfs': sfs, 'populations': pops, 'n': n}, 
+                     open(self.output().path, "wb"), -1)
