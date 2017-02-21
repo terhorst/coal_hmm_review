@@ -9,7 +9,7 @@ class OriginalCentromeres(util.OriginalFile):
     filename = "centromeres.bed.gz"
 
 class OriginalPopulations(util.OriginalFile):
-    filename = "populations.index"
+    filename = "samples_info"
 
 ## Transformed files, with indexes
 class IndexedVCF(util.Tabixed):

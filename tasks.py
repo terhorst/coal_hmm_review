@@ -1,5 +1,6 @@
 import collections
 import contextlib
+import itertools
 import luigi
 import luigi.util
 import msprime
@@ -92,21 +93,22 @@ class PopulationMap(luigi.Task):
 #                 "{}:{}".format(self.population, ",".join(samples)))
          
 class _VCF2Momi(luigi.Task):
+    contig = luigi.Parameter()
     populations = luigi.ListParameter()
 
     def requires(self):
         return {"population_map": PopulationMap()}
 
     def output(self):
-        return luigi.LocalTarget(self.input()['vcf'].path + ".momi.dat")
+        return GlobalConfig().local_target("vcf2momi", 
+                self.contig, "-".join(self.populations), "momi.dat")
 
     def run(self):
-        self.output().makedirs()
         pmap = unpickle(self.input()['population_map'])
         sfs = collections.Counter()
         pops = list(self.populations)
         with pysam.VariantFile(self.input()['vcf'].path) as vcf:
-            for record in vcf.fetch():
+            for record in vcf.fetch(contig=self.contig):
                 d = {}
                 for pop in pops:
                     gts = [x for sample in pmap[pop]
@@ -118,15 +120,38 @@ class _VCF2Momi(luigi.Task):
                 k = tuple([d[pop] for pop in pops])
                 sfs[k] += 1
         n = {pop: 2 * len(pmap[pop]) for pop in pops}
+        self.output().makedirs()
         pickle.dump({'sfs': sfs, 'populations': pops, 'n': n}, 
                      open(self.output().path, "wb"), -1)
 
 @luigi.util.inherits(_VCF2Momi)
-class OriginalVCFToMomi(_VCF2Momi):
+class _OriginalVCFToMomi(_VCF2Momi):
     def requires(self):
         ret = _VCF2Momi.requires(self)
         ret['vcf'] = data.original.IndexedVCF()
         return ret
+
+class OriginalVCFToMomi(luigi.Task):
+    populations = luigi.ListParameter()
+
+    def requires(self):
+        return [self.clone(_OriginalVCFToMomi, contig=str(i)) for i in range(1, 23)]
+
+    def run(self):
+        sfs = collections.Counter()
+        for result in self.input():
+            d = unpickle(result)
+            sfs.update(d['sfs'])
+        d['sfs'] = sfs
+        self.output().makedirs()
+        pickle.dump(d, open(self.output().path, "wb"), -1)
+
+    def output(self):
+        return GlobalConfig().local_target(
+                "momi", 
+                "-".join(self.populations), 
+                "momi.combined.dat")
+
 
 ### Estimation-related tasks
 
@@ -201,11 +226,11 @@ class _PairwiseMomiAnalysis(luigi.Task):
                 "momi", "estimates", "-".join(self.populations) + ".dat")
 
     def run(self):
-        self.output().makedirs()
         sfs, n = self.build_sfs()
         n = [n[pop] for pop in self.populations]
         mle = estimate.momi.PairwiseMomiEstimator(self.populations, sfs, n)
         demography = mle.run()
+        self.output().makedirs()
         pickle.dump(demography, open(self.output().path, "wb"), -1)
 
 class PairwiseMomiAnalysisFromOriginalData(_PairwiseMomiAnalysis):
@@ -278,3 +303,19 @@ class PairwiseMomiAnalysisFromSimulatedData(_PairwiseMomiAnalysis):
         np.random.seed(self.seed)
         return [self.clone(SimulatedVCFToMomi, seed=np.random.randint(2 ** 32)) 
                 for _ in range(GlobalConfig().chromosomes_per_bootstrap)]
+
+
+class EstimateAllPairwise(luigi.Task):
+    def requires(self):
+        return PopulationMap()
+
+    def run(self):
+        pmap = unpickle(self.input())
+        tasks = []
+        for c in itertools.combinations(pmap, 2):
+            populations = sorted(c)  
+            tasks.append(PairwiseMomiAnalysisFromOriginalData(populations=populations))
+        yield tasks
+
+    def complete(self):
+        return False

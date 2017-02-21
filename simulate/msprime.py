@@ -31,7 +31,7 @@ class MsprimeMomiSimulator:
         msp_events = sorted(msp_events, key=lambda ev: ev.time)
         return msp_events
 
-    def run(self, seed, output_path, length=int(1e5)):
+    def run(self, seed, output_path):
         pc = [msprime.PopulationConfiguration(sample_size=n) for n in self.n]
         ev = self.events()
         if False:
@@ -45,5 +45,5 @@ class MsprimeMomiSimulator:
                 population_configurations=pc,
                 random_seed=seed,
                 Ne=N0,
-                length=length)
+                length=GlobalConfig().chromosome_length)
         sim.dump(output_path)
