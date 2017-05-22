@@ -7,8 +7,6 @@ import shutil
 
 from config import *
 
-tabix = sh.Command("tabix")
-
 class OriginalFile(luigi.ExternalTask):
     def output(self):
         return luigi.LocalTarget(

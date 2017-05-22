@@ -4,10 +4,10 @@ OUTPUT_DIRECTORY=/scratch/terhorst/tishkoff/pipeline.output
 export PYTHONPATH=.
 mkdir -p $OUTPUT_DIRECTORY
 luigi --module tasks \
-    EstimateAllPairwise \
+    ConvertAllSMC \
     --GlobalConfig-output-directory $OUTPUT_DIRECTORY \
     --GlobalConfig-input-directory $INPUT_DIRECTORY \
-    --workers 1 --local-scheduler $@
+    --workers 24 --local-scheduler $@
 # luigi --module tasks PairwiseMomiAnalysisFromOriginalData \
 #     --populations '["Amhara", "Dizi"]' \
 #     --GlobalConfig-output-directory $OUTPUT_DIRECTORY \

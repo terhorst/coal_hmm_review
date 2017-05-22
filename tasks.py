@@ -1,5 +1,6 @@
 import collections
 import contextlib
+import hashlib
 import itertools
 import luigi
 import luigi.util
@@ -29,7 +30,7 @@ class PopulationMap(luigi.Task):
     that are actually in the VCF.
     """
     def requires(self):
-        return {"vcf": data.original.IndexedVCF(), 
+        return {"vcf": data.original.OriginalFullVCF(chromosome=1),
                 "populations": data.original.OriginalPopulations()}
 
     def output(self):
@@ -47,8 +48,10 @@ class PopulationMap(luigi.Task):
                 record = dict(zip(fields,
                                   re.split(r"\s+", line.strip())[:len(fields)]
                                   ))
-                pops.setdefault(record['Population'].replace(
-                    " ", "_"), []).append(record['SampleID'])
+                sid = record['SequenceID']
+                if sid.startswith("BB"):
+                    sid = record['SampleID']  # these are mixed up in the provided vcf.
+                pops.setdefault(record['Population'].replace(" ", "_"), []).append(sid)
         with pysam.VariantFile(self.input()['vcf'].path) as vcf:
             vcf_samples = set(vcf.header.samples)
         pops = {pop: list(vcf_samples & set(samples)) for pop, samples in pops.items()}
@@ -56,41 +59,60 @@ class PopulationMap(luigi.Task):
         pickle.dump(pops, open(self.output().path, "wb"), -1)
 
 
-# class _VCFConverter(luigi.Task):
-#     def requires(self):
-#         return {"vcf": data.original.IndexedVCF(), 
-#                 "centromeres": data.original.IndexedCentromeres(),
-#                 "populations": PopulationMap()}
-#         return ret
-# 
-#     @property
-#     def populations(self):
-#         return pickle.load(open(self.input()['populations'].path, "rb"))
-# 
-# 
-# class VCF2SMC(_VCFConverter):
-#     population = luigi.Parameter()
-#     contig = luigi.Parameter()
-#     distinguished = luigi.Parameter()
-# 
-#     def output(self):
-#         return GlobalConfig().local_target(
-#                     "smc", "data",
-#                     self.population, 
-#                     "{}.{}.txt.gz".format(self.distinguished, self.contig))
-#         
-#     def run(self):
-#         # Composite likelihood over first 3 individuals
-#         self.output().makedirs()
-#         samples = self.populations[self.population]
-#         undistinguished = set(samples) - set([self.distinguished])
-#         smc("vcf2smc", "-m", self.input()['centromeres'].path,
-#                 "--drop-first-last",
-#                 '-d', self.distinguished, self.distinguished,
-#                 self.input()['vcf'].path, 
-#                 self.output().path,
-#                 self.contig,
-#                 "{}:{}".format(self.population, ",".join(samples)))
+class _VCFConverter(luigi.Task):
+    chromosome = luigi.IntParameter()
+
+    def requires(self):
+        return {"vcf": data.original.OriginalFullVCF(chromosome=self.chromosome),
+                "centromeres": data.original.IndexedCentromeres(),
+                "populations": PopulationMap()}
+        return ret
+
+    @property
+    def populations(self):
+        return pickle.load(open(self.input()['populations'].path, "rb"))
+
+
+class VCF2SMC(_VCFConverter):
+    population = luigi.Parameter()
+    distinguished = luigi.Parameter()
+
+    def output(self):
+        return GlobalConfig().local_target(
+                    "smc", "data",
+                    self.population,
+                    "{}.{}.txt.gz".format(self.distinguished, self.chromosome))
+
+    def run(self):
+        # Composite likelihood over first 3 individuals
+        samples = self.populations[self.population]
+        undistinguished = set(samples) - set([self.distinguished])
+        self.output().makedirs()
+        smc("vcf2smc",
+                # "-m", self.input()['centromeres'].path,
+                '-d', self.distinguished, self.distinguished,
+                self.input()['vcf'].path,
+                self.output().path,
+                self.chromosome,
+                "{}:{}".format(self.population, ",".join(samples)))
+
+
+class ConvertAllSMC(luigi.Task):
+    def completed(self):
+        return False
+
+    def requires(self):
+        return PopulationMap()
+
+    def run(self):
+        pops = unpickle(self.input())
+        tasks = []
+        for i in range(1, 23):
+            for pop in pops:
+                for dist in pops[pop][:3]:
+                    tasks.append(VCF2SMC(chromosome=i, population=pop, distinguished=dist))
+        yield tasks
+
          
 class _VCF2Momi(luigi.Task):
     contig = luigi.Parameter()
@@ -124,19 +146,7 @@ class _VCF2Momi(luigi.Task):
         pickle.dump({'sfs': sfs, 'populations': pops, 'n': n}, 
                      open(self.output().path, "wb"), -1)
 
-@luigi.util.inherits(_VCF2Momi)
-class _OriginalVCFToMomi(_VCF2Momi):
-    def requires(self):
-        ret = _VCF2Momi.requires(self)
-        ret['vcf'] = data.original.IndexedVCF()
-        return ret
-
-class OriginalVCFToMomi(luigi.Task):
-    populations = luigi.ListParameter()
-
-    def requires(self):
-        return [self.clone(_OriginalVCFToMomi, contig=str(i)) for i in range(1, 23)]
-
+class _MergeVCFToMomi(luigi.Task):
     def run(self):
         sfs = collections.Counter()
         for result in self.input():
@@ -146,15 +156,27 @@ class OriginalVCFToMomi(luigi.Task):
         self.output().makedirs()
         pickle.dump(d, open(self.output().path, "wb"), -1)
 
+@luigi.util.inherits(_VCF2Momi)
+class _OriginalVCFToMomi(_VCF2Momi):
+    def requires(self):
+        ret = _VCF2Momi.requires(self)
+        ret['vcf'] = data.original.IndexedVCF()
+        return ret
+
+class OriginalVCFToMomi(_MergeVCFToMomi):
+    populations = luigi.ListParameter()
+
+    def requires(self):
+        return [self.clone(_OriginalVCFToMomi, contig=str(i)) for i in range(1, 23)]
+
     def output(self):
         return GlobalConfig().local_target(
                 "momi", 
+                "original",
                 "-".join(self.populations), 
                 "momi.combined.dat")
 
-
 ### Estimation-related tasks
-
 class EstimateAllSizeHistories(luigi.Task):
     def requires(self):
         return PopulationMap()
@@ -209,21 +231,20 @@ class _PairwiseMomiAnalysis(luigi.Task):
 
     def build_sfs(self):
         sfs = collections.Counter()
-        for ds in self.input():
-            data_set = unpickle(ds)
-            n = data_set['n']
-            i = [data_set['populations'].index(p) for p in self.populations]
-            for entry in data_set['sfs']:
-                key = (entry[i[0]], entry[i[1]])
-                if ((key[0][0] == key[1][0] == 0) or 
-                    (key[0][1] == key[1][1] == 0)):
-                    continue
-                sfs[key] += data_set['sfs'][entry]
+        data_set = unpickle(self.input())
+        n = data_set['n']
+        i = [data_set['populations'].index(p) for p in self.populations]
+        for entry in data_set['sfs']:
+            key = (entry[i[0]], entry[i[1]])
+            if ((key[0][0] == key[1][0] == 0) or
+                (key[0][1] == key[1][1] == 0)):
+                continue
+            sfs[key] += data_set['sfs'][entry]
         return sfs, n
 
     def output(self):
-        return GlobalConfig().local_target(
-                "momi", "estimates", "-".join(self.populations) + ".dat")
+        return luigi.LocalTarget(
+                self.input().path + '.analysis.dat')
 
     def run(self):
         sfs, n = self.build_sfs()
@@ -235,7 +256,7 @@ class _PairwiseMomiAnalysis(luigi.Task):
 
 class PairwiseMomiAnalysisFromOriginalData(_PairwiseMomiAnalysis):
     def requires(self):
-        return [self.clone(OriginalVCFToMomi)]
+        return self.clone(OriginalVCFToMomi)
 
 @luigi.util.requires(PairwiseMomiAnalysisFromOriginalData)
 class SimulatePairFromMLE(luigi.Task):
@@ -305,17 +326,18 @@ class PairwiseMomiAnalysisFromSimulatedData(_PairwiseMomiAnalysis):
                 for _ in range(GlobalConfig().chromosomes_per_bootstrap)]
 
 
-class EstimateAllPairwise(luigi.Task):
+class _AllPairs(luigi.Task):
     def requires(self):
         return PopulationMap()
 
-    def run(self):
-        pmap = unpickle(self.input())
-        tasks = []
-        for c in itertools.combinations(pmap, 2):
-            populations = sorted(c)  
-            tasks.append(PairwiseMomiAnalysisFromOriginalData(populations=populations))
-        yield tasks
+    @property
+    def population_map(self):
+        return unpickle(self.input())
 
-    def complete(self):
-        return False
+    def all_pairs_tasks(self):
+        pmap = unpickle(self.input())
+        tasks = {}
+        for c in itertools.combinations(pmap, 2):
+            pair = tuple(sorted(c))
+            tasks[pair] = PairwiseMomiAnalysisFromOriginalData(populations=pair)
+        return tasks
