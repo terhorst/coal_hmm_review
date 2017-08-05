@@ -28,8 +28,6 @@ class PairwiseMomiEstimator:
         self.populations = populations
         self.sfs = {k: v for k, v in sfs.items() if np.array_equal(list(map(sum, k)), n)}
         self.n = n
-        self.configs = [k for k in self.sfs if k is not None]
-        self.config_array = momi.config_array(populations, self.configs)
 
     # def events(self, t_m, t_div, log_p, N_0, N_1, N_A):
     def events(self, t_div, N_0, N_1, N_A):

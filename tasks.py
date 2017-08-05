@@ -38,6 +38,8 @@ class PopulationMap(luigi.Task):
 
     def run(self):
         pops = {}
+        with pysam.VariantFile(self.input()['vcf'].path) as vcf:
+            vcf_samples = set(vcf.header.samples)
         with open(self.input()['populations'].path, "rt") as f:
             fields = next(f)[1:].strip().split("\t")
             for line in f:
@@ -46,17 +48,17 @@ class PopulationMap(luigi.Task):
                 # last will be the population ID, with Mbororo Fulani
                 # truncated to Mbororo.
                 record = dict(zip(fields,
-                                  re.split(r"\s+", line.strip())[:len(fields)]
+                                  re.split(r"\t+", line.strip())[:len(fields)]
                                   ))
-                sid = record['SequenceID']
-                if sid.startswith("BB"):
-                    sid = record['SampleID']  # these are mixed up in the provided vcf.
-                pops.setdefault(record['Population'].replace(" ", "_"), []).append(sid)
-        with pysam.VariantFile(self.input()['vcf'].path) as vcf:
-            vcf_samples = set(vcf.header.samples)
+                inter = set(record.values()) & vcf_samples
+                assert len(inter) < 2
+                if len(inter) == 1:
+                    pops.setdefault(record['Population'].replace(" ", "_"), []).append(next(iter(inter)))
+                else:
+                    print(record)
         pops = {pop: list(vcf_samples & set(samples)) for pop, samples in pops.items()}
         pops = {pop: samples for pop, samples in pops.items() if samples}
-        pickle.dump(pops, open(self.output().path, "wb"), -1)
+        pickle.dump(collections.OrderedDict(pops), open(self.output().path, "wb"), -1)
 
 
 class _VCFConverter(luigi.Task):
@@ -160,7 +162,7 @@ class _MergeVCFToMomi(luigi.Task):
 class _OriginalVCFToMomi(_VCF2Momi):
     def requires(self):
         ret = _VCF2Momi.requires(self)
-        ret['vcf'] = data.original.IndexedVCF()
+        ret['vcf'] = self.clone(data.original.OriginalFullVCF)
         return ret
 
 class OriginalVCFToMomi(_MergeVCFToMomi):

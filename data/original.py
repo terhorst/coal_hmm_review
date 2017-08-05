@@ -35,5 +35,6 @@ class OriginalFullVCF(luigi.ExternalTask):
     def output(self):
         return luigi.LocalTarget(os.path.join(
                 GlobalConfig().input_directory,
-                'original_data', 'all',
-                'all.{}.allsites.vcf.gz'.format(self.chromosome)))
+                'phased', 
+                'Eagle_phased',
+                '{}.chrom_phased.vcf.gz'.format(self.chromosome)))
