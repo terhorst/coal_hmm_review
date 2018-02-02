@@ -78,6 +78,7 @@ class _VCFConverter(luigi.Task):
 class VCF2SMC(_VCFConverter):
     population = luigi.Parameter()
     distinguished = luigi.Parameter()
+    chromosome = luigi.Parameter()
 
     def output(self):
         return GlobalConfig().local_target(
@@ -112,7 +113,7 @@ class ConvertAllSMC(luigi.Task):
         for i in range(1, 23):
             for pop in pops:
                 for dist in pops[pop][:3]:
-                    tasks.append(VCF2SMC(chromosome=i, population=pop, distinguished=dist))
+                    tasks.append(VCF2SMC(chromosome=str(i), population=pop, distinguished=dist))
         yield tasks
 
          
@@ -184,7 +185,7 @@ class EstimateAllSizeHistories(luigi.Task):
         return PopulationMap()
 
     def run(self):
-        pops = pickle.load(open(self.input(), "rb"))
+        pops = pickle.load(open(self.input().path, "rb"))
         yield [EstimateSizeHistory(population=pop) for pop in pops]
 
 class EstimateSizeHistory(luigi.Task):
@@ -215,16 +216,12 @@ class EstimateSizeHistory(luigi.Task):
         samples = self.population_map[self.population]
         smc_data_files = yield [
                 VCF2SMC(
-                    contig=str(c), 
+                    chromosome=str(c), 
                     population=self.population, 
                     distinguished=s) 
                 for c in GlobalConfig().contigs
                 for s in list(samples)[:3]]
-        smc('estimate', 
-                '--theta', .00025, '--reg', 10, '--blocks', 1, 
-                "--knots", 20,
-                '--no-initialize',
-                '-v', '-o', self._output_directory,
+        smc('estimate', '-v', '-o', self._output_directory, 1.25e-8,
                 *[f.path for f in smc_data_files])
 
 

@@ -49,8 +49,7 @@ class RunSMCMarginal(luigi.Task):
         smc.estimate("-o", os.path.split(self.output().path)[0], "-v", 1.25e-8, 
                      "-c", 10000, 
                      *[f.path for f in self.input()],
-                     algorithm="TNC",
-                     knots=12)
+		     cores=4)
 
 
 class RunSMCJoint(luigi.Task):

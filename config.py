@@ -16,7 +16,7 @@ def unpickle(task):
     return pickle.load(open(task.path, "rb"))
 
 class GlobalConfig(luigi.Config):
-    contigs = list(map(str, range(1, 2)))
+    contigs = list(map(str, range(1, 20)))
     bootstrap_replicates = luigi.IntParameter(20)
     chromosomes_per_bootstrap = luigi.IntParameter(30)
     chromosome_length = luigi.IntParameter(int(1e5))
