@@ -19,7 +19,9 @@ tabix = sh.Command("tabix")
 bgzip = sh.Command("bgzip")
 bcftools = sh.Command("bcftools")
 psmc = sh.Command("/scratch/psmc/psmc")
+psmcplot = sh.Command("/scratch/psmc/utils/psmc_plot.pl")
 msmc = sh.Command("/scratch/msmc/msmc_1.0.0_linux64bit")
+msmcplot = sh.Command("/scratch/msmc/plot.R")
 multihet = sh.Command("/scratch/msmc/generate_multihetsep.py").bake(_no_err=True)
 
 from config import *
@@ -117,12 +119,26 @@ class EstimateSizeHistoryMSMC(SimulationTask):
             self.N,
             "msmc",
             "estimate",
-            f"msmc.out")
+            f"msmc.final.txt")
 
     def run(self):
         msmc(*[f.path for f in self.input()],
-             _out=self.output().path)
+             i=10,
+             outFilePrefix=self.output().path[:-len(".final.txt")])
 
+@luigi.util.requires(EstimateSizeHistoryMSMC)
+class PlotMSMC(luigi.Task):
+    def output(self):
+        return GlobalConfig().local_target(
+            self.demography,
+            self.seed,
+            self.N,
+            "msmc",
+            "estimate",
+            "plot_msmc.pdf")
+
+    def run(self):
+        msmcplot(self.input().path, self.output().path)
 
 @luigi.util.requires(MsPrimeSimulator)
 class VCF2SMC(SimulationTask):
@@ -205,7 +221,7 @@ class EstimateSizeHistorySMC(SimulationTask):
     def run(self):
         # Create data sets from composite likelihood
         samples = self.demo.samples()
-        smc('estimate', '-v', '-o', 
+        smc.estimate('-v', '-o', 
             os.path.dirname(self.output().path),
             "--cores", 2,
             "--knots", 12,
@@ -214,6 +230,20 @@ class EstimateSizeHistorySMC(SimulationTask):
             "-rp", 5,
             1.25e-8,
             *[f.path for f in self.input()])
+
+@luigi.util.requires(EstimateSizeHistorySMC)
+class PlotSMC(SimulationTask):
+    def output(self):
+        return GlobalConfig().local_target(
+            self.demography,
+            self.seed,
+            self.N,
+            "smc",
+            "estimates",
+            "plot_smc.pdf")
+
+    def run(self):
+        smc.plot('-g', 29, self.output().path, self.input().path)
 
 class PSMCCombiner(SimulationTask):
     def requires(self):
@@ -246,10 +276,24 @@ class EstimateSizeHistoryPSMC(luigi.Task):
     def run(self):
         psmc(self.input().path, _out=self.output().path)
 
+@luigi.util.requires(EstimateSizeHistoryPSMC)
+class PlotPSMC(luigi.Task):
+    def output(self):
+        return GlobalConfig().local_target(
+            self.demography,
+            self.seed,
+            self.N,
+            "psmc",
+            "plot_psmc.pdf")
+
+    def run(self):
+        psmcplot("-p", self.output().path[:-len(".pdf")], self.input().path)
+
 class EstimateAll(SimulationTask, luigi.WrapperTask):
     def requires(self):
-        return [self.clone(EstimateSizeHistorySMC), 
-                self.clone(EstimateSizeHistoryPSMC)]
+        return [self.clone(cls) for cls in (PlotPSMC,
+                                            PlotMSMC,
+                                            PlotSMC)]
 
 class EstimateManyReplicates(luigi.WrapperTask):
     N = luigi.IntParameter()

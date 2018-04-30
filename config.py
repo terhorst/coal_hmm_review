@@ -12,7 +12,7 @@ def unpickle(task):
 
 class GlobalConfig(luigi.Config):
     chromosome_length = luigi.IntParameter(int(1e7))
-    n_contigs = luigi.IntParameter(1)
+    n_contigs = luigi.IntParameter(10)
     output_directory = luigi.Parameter()
 
     def local_target(self, *args):
