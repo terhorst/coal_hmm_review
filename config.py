@@ -11,7 +11,7 @@ def unpickle(task):
     return pickle.load(open(task.path, "rb"))
 
 class GlobalConfig(luigi.Config):
-    chromosome_length = luigi.IntParameter(int(1e7))
+    chromosome_length = luigi.IntParameter()
     n_contigs = luigi.IntParameter(10)
     output_directory = luigi.Parameter()
 
