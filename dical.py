@@ -270,12 +270,12 @@ def returnMLE (outputFilename):
 
 class PieceWiseConstantAnalysis:
 
-	metaNumStartPoints = 10
-	metaNumPoints = 5
-	metaKeepBest = 2
-	metaNumIterations = 3
-	numEMiterations = 3
-	numIterationsMstep = 3
+	# metaNumStartPoints = 40
+	# metaNumPoints = 12
+	# metaKeepBest = 4
+	# metaNumIterations = 3
+	numEMiterations = 10
+	numIterationsMstep = 2
 
 	cl = "lol"
 
@@ -285,10 +285,10 @@ class PieceWiseConstantAnalysis:
 	mu = 1.25e-8
 	r = 1.25e-8
 
-	numEpochs = 10
+	numEpochs = 16
 	firsTimeInGen = 200
 	lastTimeInGen = 20000
-	maxSize = 100000
+	maxSize = 200000
 	minSize = 100
 
 	jarFile = "cleanDiCal2.jar"
@@ -309,11 +309,17 @@ class PieceWiseConstantAnalysis:
 		# one parameter per epoch
 		self.bounds = [[DiploidSizeToCoalSize (self.Nref, self.minSize), DiploidSizeToCoalSize (self.Nref, self.maxSize)]]*self.numEpochs
 
-		# random starting points
-		self.metaStartFile = "%s.rand" % uniqueBasename
+		# random starting point(s)
+		# self.metaStartFile = "%s.rand" % uniqueBasename
 		samplingRegionFactor = 0.25
 		samplingRegion = [[math.exp (math.log(bs[0]) + samplingRegionFactor * (math.log(bs[1]) - math.log(bs[0]))), math.exp (math.log(bs[0]) + (1-samplingRegionFactor) * (math.log(bs[1]) - math.log(bs[0])))] for bs in self.bounds]
-		logUniformStartingPointsFile (self.metaStartFile, self.metaNumStartPoints, samplingRegion)
+		# logUniformStartingPointsFile (self.metaStartFile, self.metaNumStartPoints, samplingRegion)
+		logBounds = [[math.log(b[0]), math.log(b[1])] for b in samplingRegion]
+		# and get a point
+		logPoint = [random.uniform(b[0], b[1]) for b in logBounds]
+		point = [math.exp(x) for x in logPoint]
+		self.startPointString = "'" + ",".join([("%.8f" % x) for x in point]) + "'"
+
 
 		# param file
 		writeMutRecoParameterFile (self.paramFile, theta (self.Nref, self.mu), rho (self.Nref, self.r))
@@ -332,12 +338,13 @@ class PieceWiseConstantAnalysis:
 	def run (self):
 
 		if (self.numCores > 1):
-			parallelEmSteps = math.ceil (self.numCores / 2)
-			parallelString = " --parallel %d --metaParallelEmSteps %d" % (self.numCores, parallelEmSteps)
+			parallelEmSteps = min (math.ceil (self.numCores / 2), 2)
+			# parallelString = " --parallel %d --metaParallelEmSteps %d" % (self.numCores, parallelEmSteps)
+			parallelString = " --parallel %d" % (self.numCores)
 		else:
 			parallelString = ""
 
-		dicalCmd = ("java -Xmx30G -jar %s" +
+		dicalCmd = ("java -Xmx70G -jar %s" +
 			" --paramFile %s" +
 			" --demoFile %s" +
 			" --configFile %s" +
@@ -347,11 +354,13 @@ class PieceWiseConstantAnalysis:
 			" --seed %d" +
 			" --lociPerHmmStep %d" +
 			" --compositeLikelihood %s" +
-			" --metaStartFile %s" +
-			" --metaNumIterations %d" +
-			" --metaKeepBest %d" +
-			" --metaNumPoints %d" +
+			" --startPoint %s" +
+			# " --metaStartFile %s" +
+			# " --metaNumIterations %d" +
+			# " --metaKeepBest %d" +
+			# " --metaNumPoints %d" +
 			" --numberIterationsEM %d" +
+			# " --disableCoordinateWiseMStep" +
 			" --numberIterationsMstep %d" +
 			" --printEmPath" +
 			" --intervalType simple" +
@@ -369,10 +378,11 @@ class PieceWiseConstantAnalysis:
 			self.seeed,
 			self.numLociPerHmmStep,
 			self.cl,
-			self.metaStartFile,
-			self.metaNumIterations,
-			self.metaKeepBest,
-			self.metaNumPoints,
+			self.startPointString,
+			# self.metaStartFile,
+			# self.metaNumIterations,
+			# self.metaKeepBest,
+			# self.metaNumPoints,
 			self.numEMiterations,
 			self.numIterationsMstep,
 			";".join([",".join([str(x) for x in y]) for y in self.bounds]),
@@ -432,7 +442,7 @@ class ExpGrowthEstimateOnsetTimeAnalysis:
 		self.seeed = randomSeed
 		self.numCores = numCores
 
-		self.diCalOutputFileName = "%s.out" % uniqueBasename
+		self.diCalOutputFileName = "%s.dical_out" % uniqueBasename
 		self.paramFile = "%s.param" % uniqueBasename
 		self.demoFile = "%s.demo" % uniqueBasename
 		self.rateFile = "%s.rates" % uniqueBasename
@@ -620,7 +630,7 @@ class ExpGrowthFixedOnsetTimeAnalysis:
 		else:
 			parallelString = ""
 
-		dicalCmd = ("java -Xmx30G -jar %s" +
+		dicalCmd = ("java -Xmx70G -jar %s" +
 			" --paramFile %s" +
 			" --demoFile %s" +
 			" --ratesFile %s" +
@@ -683,81 +693,105 @@ def realAnalysis ():
 
 	# -------------------- piece-wise constant --------------------
 	# set the directory
-	daDir = "/Users/steinrue/labsharecri/projects/coalHMMopionPiece/preLuigiStuff/pieceTest"
+	daDir = "/Users/steinrue/labsharecri/projects/coalHMMopionPiece/analysis/test/pieceWiseTestTwo"
+	# daDir = "/Users/steinrue/labsharecri/projects/coalHMMopionPiece/preLuigiStuff/pieceTest"
 	# os.makedirs (daDir)
 	os.chdir (daDir)
 
-	uniqueBasename = "porpoise"
+	uniqueBasename = "catfish"
 
-	# make reference
-	numLoci = 50000
-	refFilename = "%s.ref" % uniqueBasename
-	makeReferenceFile (refFilename, numLoci)
+	dataDir = "/home/steinrue/labshare/projects/coalHMMopionPiece/data/test/pieceWiseConst"
 
-	vcfFilename = "%s.vcf" % uniqueBasename
+	numContigs = 10
 
-	vcfFiles = "'%s,%s,%s'" % (vcfFilename, vcfFilename, vcfFilename)
-	refFiles = "'%s,%s,%s'" % (refFilename, refFilename, refFilename)
+	# # make reference
+	# numLoci = 50000
+	# refFilename = "%s.ref" % uniqueBasename
+	# makeReferenceFile (refFilename, numLoci)
 
-	# try to put some analysis together
-	# arguments: <fileBasename> <numCorse> <list_of_vcf> <list_of_refFiles> <sample_size> <seed>
-	analysis = PieceWiseConstantAnalysis (uniqueBasename, 3, vcfFiles, refFiles, 12, 4711)
-	print ("---------- COMMAND ----------")
-	print (analysis.run())
-	print ("---------- MLE ----------")
-	print (analysis.returnMLE())
+	# we have a reference
+	refFilename = os.path.join (dataDir, "output.ref")
+	refList = [refFilename]*numContigs
+	refFiles = "'" + ",".join(refList) + "'"
+	
 
-	# -------------------- exponential growth, estimate onset --------------------
-	# set the directory
-	daDir = "/Users/steinrue/labsharecri/projects/coalHMMopionPiece/preLuigiStuff/expTestEstimateTime"
-	# os.makedirs (daDir)
-	os.chdir (daDir)
-
-	uniqueBasename = "tortoise"
-
-	# make reference
-	numLoci = 50000
-	refFilename = "%s.ref" % uniqueBasename
-	makeReferenceFile (refFilename, numLoci)
-
-	vcfFilename = "%s.vcf" % uniqueBasename
-
-	vcfFiles = "'%s,%s,%s'" % (vcfFilename, vcfFilename, vcfFilename)
-	refFiles = "'%s,%s,%s'" % (refFilename, refFilename, refFilename)
+	vcfList = []
+	for d in range(numContigs):
+		vcfList.append (os.path.join (dataDir, "contig.%d.vcf" % d))
+	vcfFiles = "'" + ",".join(vcfList) + "'"
 
 	# try to put some analysis together
 	# arguments: <fileBasename> <numCorse> <list_of_vcf> <list_of_refFiles> <sample_size> <seed>
-	analysis = ExpGrowthEstimateOnsetTimeAnalysis (uniqueBasename, 3, vcfFiles, refFiles, 12, 4711)
+	analysis = PieceWiseConstantAnalysis (uniqueBasename, 4, vcfFiles, refFiles, 10, 4712)
 	print ("---------- COMMAND ----------")
-	print (analysis.run())
+	cmd = analysis.run()
+	print (cmd)
+	ofs = open ("%s.sh" % uniqueBasename, "w")
+	ofs.write("#!/bin/bash\n")
+	ofs.write("#PBS -N %s\n" % uniqueBasename)
+	ofs.write("#PBS -S /bin/bash\n")
+	ofs.write("#PBS -l walltime=10:00:00\n")
+	ofs.write("#PBS -l nodes=1:ppn=4\n")
+	ofs.write("#PBS -l mem=80gb\n")
+	ofs.write("#PBS -o %s\n" % os.path.join (daDir, "%s.out" % uniqueBasename))
+	ofs.write("#PBS -e %s\n" % os.path.join (daDir, "%s.err" % uniqueBasename))
+	ofs.write (cmd + "\n")
+	ofs.close()
+	# print (analysis.run())
 	print ("---------- MLE ----------")
-	print (analysis.returnMLE())
+	# print (analysis.returnMLE())
 
-	# -------------------- exponential growth, fixed onset --------------------
-	# set the directory
-	daDir = "/Users/steinrue/labsharecri/projects/coalHMMopionPiece/preLuigiStuff/expTestFixed"
-	# os.makedirs (daDir)
-	os.chdir (daDir)
+	# # -------------------- exponential growth, estimate onset --------------------
+	# # set the directory
+	# daDir = "/Users/steinrue/labsharecri/projects/coalHMMopionPiece/preLuigiStuff/expTestEstimateTime"
+	# # os.makedirs (daDir)
+	# os.chdir (daDir)
 
-	uniqueBasename = "barnacle"
+	# uniqueBasename = "tortoise"
 
-	# make reference
-	numLoci = 50000
-	refFilename = "%s.ref" % uniqueBasename
-	makeReferenceFile (refFilename, numLoci)
+	# # make reference
+	# numLoci = 50000
+	# refFilename = "%s.ref" % uniqueBasename
+	# makeReferenceFile (refFilename, numLoci)
 
-	vcfFilename = "%s.vcf" % uniqueBasename
+	# vcfFilename = "%s.vcf" % uniqueBasename
 
-	vcfFiles = "'%s,%s,%s'" % (vcfFilename, vcfFilename, vcfFilename)
-	refFiles = "'%s,%s,%s'" % (refFilename, refFilename, refFilename)
+	# vcfFiles = "'%s,%s,%s'" % (vcfFilename, vcfFilename, vcfFilename)
+	# refFiles = "'%s,%s,%s'" % (refFilename, refFilename, refFilename)
 
-	# try to put some analysis together
-	# arguments: <fileBasename> <numCorse> <list_of_vcf> <list_of_refFiles> <sample_size> <seed>
-	analysis = ExpGrowthFixedOnsetTimeAnalysis (uniqueBasename, 3, vcfFiles, refFiles, 12, 4711)
-	print ("---------- COMMAND ----------")
-	print (analysis.run())
-	print ("---------- MLE ----------")
-	print (analysis.returnMLE())
+	# # try to put some analysis together
+	# # arguments: <fileBasename> <numCorse> <list_of_vcf> <list_of_refFiles> <sample_size> <seed>
+	# analysis = ExpGrowthEstimateOnsetTimeAnalysis (uniqueBasename, 3, vcfFiles, refFiles, 12, 4711)
+	# print ("---------- COMMAND ----------")
+	# print (analysis.run())
+	# print ("---------- MLE ----------")
+	# # print (analysis.returnMLE())
+
+	# # -------------------- exponential growth, fixed onset --------------------
+	# # set the directory
+	# daDir = "/Users/steinrue/labsharecri/projects/coalHMMopionPiece/preLuigiStuff/expTestFixed"
+	# # os.makedirs (daDir)
+	# os.chdir (daDir)
+
+	# uniqueBasename = "barnacle"
+
+	# # make reference
+	# numLoci = 50000
+	# refFilename = "%s.ref" % uniqueBasename
+	# makeReferenceFile (refFilename, numLoci)
+
+	# vcfFilename = "%s.vcf" % uniqueBasename
+
+	# vcfFiles = "'%s,%s,%s'" % (vcfFilename, vcfFilename, vcfFilename)
+	# refFiles = "'%s,%s,%s'" % (refFilename, refFilename, refFilename)
+
+	# # try to put some analysis together
+	# # arguments: <fileBasename> <numCorse> <list_of_vcf> <list_of_refFiles> <sample_size> <seed>
+	# analysis = ExpGrowthFixedOnsetTimeAnalysis (uniqueBasename, 3, vcfFiles, refFiles, 12, 4711)
+	# print ("---------- COMMAND ----------")
+	# print (analysis.run())
+	# print ("---------- MLE ----------")
+	# # print (analysis.returnMLE())
 
 
 def test():
