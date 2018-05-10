@@ -3,9 +3,11 @@ import pickle
 import luigi
 import importlib
 
-MUTATION_RATE = RECOMBINATION_RATE = 1.25e-8
+MUTATION_RATE = 1.25e-8
+RECOMBINATION_RATE = MUTATION_RATE / 10.
 N0 = 1e4
 THETA = MUTATION_RATE * 2 * N0
+GENERATION_TIME = 29
 
 def unpickle(task):
     return pickle.load(open(task.path, "rb"))

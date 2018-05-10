@@ -20,13 +20,16 @@ smc = sh.Command("smc++")
 tabix = sh.Command("tabix")
 bgzip = sh.Command("bgzip")
 bcftools = sh.Command("bcftools")
-psmc = sh.Command("/scratch/psmc/psmc")
-psmcplot = sh.Command("/scratch/psmc/utils/psmc_plot.pl")
+psmc = sh.Command("/scratch/psmc/psmc").bake("-N", 15)
+psmcplot = sh.Command("/scratch/psmc/utils/psmc_plot.pl").bake("-n", 0) # use best fitting mdl
 psmc2hist = sh.Command("/scratch/psmc/utils/psmc2history.pl")
 psmc2msmc = sh.Command(os.path.join(basedir, "scripts", "psmc2msmc.R"))
-msmc = sh.Command("/scratch/msmc/msmc_1.0.0_linux64bit")
-msmcplot = sh.Command(os.path.join(basedir, "scripts", "msmcplot.R"))
+msmc = sh.Command("/scratch/msmc/msmc_1.0.0_linux64bit").bake('-t', 2)
 multihet = sh.Command("/scratch/msmc/generate_multihetsep.py").bake(_no_err=True)
+msmc2csv = sh.Command(os.path.join(basedir, "scripts", "msmc2csv.R"))
+psmc2csv = sh.Command(os.path.join(basedir, "scripts", "psmc2csv.R"))
+smc2csv = sh.Command(os.path.join(basedir, "scripts", "smc2csv.R"))
+combine_plots = sh.Command(os.path.join(basedir, "scripts", "combine_plots.R")).bake(_no_err=True)
 
 from config import *
 import demography
@@ -49,8 +52,8 @@ class SimulationTask(luigi.Config):
     def local_target(self, *args):
         return GlobalConfig().local_target(
                 self.demography,
-                self.seed,
                 self.N,
+                self.seed,
                 *args)
 
 
@@ -106,7 +109,7 @@ class BCF2VCF(SimulationTask):
 
 
 @luigi.util.inherits(MsPrimeSimulator)
-class VCF2MSMC(luigi.Task):
+class VCF2MSMC(SimulationTask):
     def requires(self):
         return [self.clone(SplitVCF, sample_id=i) for i in range(2)]
 
@@ -128,7 +131,7 @@ class EstimateSizeHistoryMSMC(SimulationTask):
     def output(self):
         return self.local_target(
             "msmc",
-            "estimate",
+            "estimates",
             f"msmc.final.txt")
 
     def run(self):
@@ -137,15 +140,18 @@ class EstimateSizeHistoryMSMC(SimulationTask):
              outFilePrefix=self.output().path[:-len(".final.txt")])
 
 @luigi.util.requires(EstimateSizeHistoryMSMC)
-class PlotMSMC(luigi.Task):
+class PlotMSMC(SimulationTask):
     def output(self):
         return self.local_target(
             "msmc",
-            "estimate",
-            "plot_msmc.pdf")
+            "estimates",
+            "plot.csv")
 
     def run(self):
-        msmcplot(self.output().path, self.input().path)
+        msmc2csv(MUTATION_RATE, 
+                 GENERATION_TIME,
+                 self.input().path,
+                 self.output().path)
 
 @luigi.util.requires(MsPrimeSimulator)
 class VCF2SMC(SimulationTask):
@@ -172,7 +178,7 @@ class VCF2SMC(SimulationTask):
                 "{}:{}".format('pop1', ",".join(samples)))  # FIXME: hardcoded pop for now
 
 @luigi.util.requires(VCF2SMC)
-class SMC2PSMC(luigi.Task):
+class SMC2PSMC(SimulationTask):
     def output(self):
         return self.local_target(
             "psmc",
@@ -219,13 +225,20 @@ class EstimateSizeHistorySMC(SimulationTask):
     def run(self):
         # Create data sets from composite likelihood
         samples = self.demo.samples()
-        smc.estimate('-v', '-o', 
-            os.path.dirname(self.output().path),
+        out_path = os.path.dirname(self.output().path)
+        initial_path = os.path.join(out_path, "initial")
+        smc.estimate('-v', 
+            '-o', initial_path,
+            '--em-iterations', 2,
+            '--knots', 24,
             "--cores", 2,
-            "--knots", 12,
-            "--timepoints", "33,100000",
-            "--spline", "cubic",
-            "-rp", 5,
+            1.25e-8,
+            *[f.path for f in self.input()])
+        smc.estimate('-v',
+            '-o', out_path,
+            '--initial-model', os.path.join(initial_path, 'model.final.json'),
+            "--cores", 2,
+            "--timepoints", "200,100000",
             1.25e-8,
             *[f.path for f in self.input()])
 
@@ -235,10 +248,15 @@ class PlotSMC(SimulationTask):
         return self.local_target(
             "smc",
             "estimates",
-            "plot_smc.pdf")
+            "plot.csv")
 
     def run(self):
-        smc.plot('-g', 29, self.output().path, self.input().path)
+        pdf = self.output().path[:-3] + "pdf"
+        smc.plot('-g', GENERATION_TIME, "-c", 
+                 pdf,
+                 self.input().path)
+        smc2csv(self.output().path, 
+                self.output().path)
 
 class PSMCCombiner(SimulationTask):
     def requires(self):
@@ -256,14 +274,14 @@ class PSMCCombiner(SimulationTask):
         sh.cat(*[f.path for f in self.input()], _out=self.output().path)
 
 @luigi.util.requires(PSMCCombiner)
-class EstimateSizeHistoryPSMC(luigi.Task):
+class EstimateSizeHistoryPSMC(SimulationTask):
     def output(self):
         return self.local_target(
             "psmc",
             "estimates.txt")
 
     def run(self):
-        psmc(self.input().path, _out=self.output().path)
+        psmc("-o", self.output().path, self.input().path)
 
 
 class DicalRef(SimulationTask):
@@ -306,87 +324,72 @@ class EstimateSizeHistoryDical(SimulationTask):
         )
         cmd = da.run()
         os.system(cmd)
+        point, lik = da.returnMLE()
+        print(point, file=open(basename + ".mle", "wt"))
+
+
+@luigi.util.requires(EstimateSizeHistoryDical)
+class PlotDical(SimulationTask):
+    def output(self):
+        return self.local_target(
+            "dical",
+            "plot.csv")
+
+    def run(self):
+        # mattias: please fill in
+        pass
 
 
 @luigi.util.requires(EstimateSizeHistoryPSMC)
-class PlotPSMC(luigi.Task):
+class PlotPSMC(SimulationTask):
     def output(self):
         return self.local_target(
             "psmc",
-            "plot_psmc.pdf")
+            "plot.csv")
 
     def run(self):
-        psmcplot("-g", 29, "-p", self.output().path[:-len(".pdf")], self.input().path)
+        base = self.output().path[:-len(".csv")]
+        psmcplot("-g", GENERATION_TIME, 
+                 "-R", 
+                 "-u", MUTATION_RATE,
+                 "-p", 
+                 base,
+                 self.input().path)
+        psmc2csv(base + ".0.txt", self.output().path)
 
-class EstimateAll(SimulationTask, luigi.WrapperTask):
+
+class PlotCombined(luigi.Task):
+    demography = luigi.Parameter()
+    N = luigi.IntParameter()
+    n_replicates = luigi.IntParameter()
+
     def requires(self):
-        return [self.clone(cls) for cls in (PlotPSMC,
-                                            PlotMSMC,
-                                            PlotSMC)]
+        return [self.clone(cls, demography=self.demography, seed=1 + i)
+                for i in range(self.n_replicates)
+                for cls in (PlotPSMC, PlotMSMC, PlotSMC, PlotDical)[:-1]]
+
+    def output(self):
+        return GlobalConfig().local_target(
+                self.demography,
+                self.N,
+                f"{self.demography}.pdf")
+
+    def run(self):
+        demo = demography.factory(self.demography, self.N)
+        truth_csv = self.output().path[:-4] + "_truth.csv"
+        open(truth_csv, "wt").write(demo.to_csv(GENERATION_TIME))
+        combine_plots(self.output().path,
+                      truth_csv,
+                      *[f.path for f in self.input()])
+
 
 class ManyEstimates(luigi.Config):
     N = luigi.IntParameter()
     n_replicates = luigi.IntParameter(default=10)
+
 
 class EstimateManyReplicates(ManyEstimates, luigi.WrapperTask):
     def requires(self):
         return [self.clone(EstimateAll, demography=demo, seed=i)
                 for i in range(1, 1 + self.n_replicates)
                 for demo in demography.DEMOGRAPHIES]
-
-
-class CombinePlotsSMC(ManyEstimates):
-    demography = luigi.Parameter()
-    def requires(self):
-        return [self.clone(EstimateSizeHistoryPSMC, 
-                           demography=self.demography,
-                           seed=i)
-                for i in range(1, 1 + self.n_replicates)]
-
-    def output(self):
-        return GlobalConfig().local_target(
-            self.demography,
-            self.N,
-            "smc_combined.pdf")
-
-    def run(self):
-        smc.plot('-g', 29, self.output().path, 
-                 *[f.path for f in self.input()])
-
-class CombinePlotsMSMC(ManyEstimates):
-    demography = luigi.Parameter()
-    def requires(self):
-        return [self.clone(EstimateSizeHistoryMSMC, 
-                           demography=self.demography,
-                           seed=i)
-                for i in range(1, 1 + self.n_replicates)]
-
-    def output(self):
-        return GlobalConfig().local_target(
-            self.demography,
-            self.N,
-            "msmc_combined.pdf")
-
-    def run(self):
-        msmcplot(self.output().path, 
-                 *[f.path for f in self.input()])
-
-class CombinePlotsPSMC(ManyEstimates):
-    demography = luigi.Parameter()
-    def requires(self):
-        return [self.clone(EstimateSizeHistoryPSMC, 
-                           demography=self.demography,
-                           seed=i)
-                for i in range(1, 1 + self.n_replicates)]
-
-    def output(self):
-        return GlobalConfig().local_target(
-            self.demography,
-            self.N,
-            "psmc_combined.pdf")
-
-    def run(self):
-        hists = []
-        for f in self.input():
-            hists.append(f.path + '.hist')
-            psmc2msmc(psmc2hist(f.path), _out=hists[-1])
