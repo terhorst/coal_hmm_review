@@ -1,6 +1,5 @@
 #!/bin/bash -ex
-OUTPUT_DIRECTORY=/scratch/terhorst/benchmark/output3
-# rm -rf $OUTPUT_DIRECTORY   ## THIS IS VERY DANGEROUS
+OUTPUT_DIRECTORY=$HOME/benchmark/output3
 export PYTHONPATH=.
 mkdir -p $OUTPUT_DIRECTORY
 # luigi --module tasks \

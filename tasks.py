@@ -22,24 +22,28 @@ from dical import PieceWiseConstantAnalysis
 
 basedir = os.path.dirname(os.path.realpath(__file__))
 
-def HpcCommand(cores, *args, **kwargs):
+def HpcCommand(cores=1):
     return sh.Command('salloc').bake('-C', 'haswell',
+                                     '-A', 'm2871',
                                      '-q', 'regular').srun.bake('-c', cores)
+
+def LocalCommand(cores=1):
+    return sh.Command
+
 
 if HPC:
     Command = HpcCommand
 else:
     Command = sh.Command
 
-smc_estimate = Command("smc++").estimate
-psmc = Command(PSMC_PATH + "/psmc").bake("-N", 20, "-p", "4+20*3+4")
-msmc = Command(MSMC_PATH + "/msmc_1.0.0_linux64bit").bake('-t', 2)
-dical = Command('java').bake('-Xmx16G', '-jar', 'cleanDiCal2.jar')
+smc_estimate = Command(cores=8)("smc++").estimate.bake(cores=8)
+psmc = Command()(PSMC_PATH + "/psmc").bake("-N", 20, "-p", "4+20*3+4")
+msmc = Command(cores=8)(MSMC_PATH + "/msmc_1.0.0_linux64bit").bake('-t', 8)
+dical = Command(cores=8)('java').bake('-Xmx16G', '-jar', 'cleanDiCal2.jar').bake(parallel=8)
+bcftools = Command()("bcftools")
+vcf2smc = Command()('smc++').vcf2smc
+run_msprime = Command()(os.path.join(basedir, "scripts", "run_msprime.py"))
 
-tabix = sh.Command("tabix")
-bgzip = sh.Command("bgzip")
-bcftools = sh.Command("bcftools")
-vcf2smc = sh.Command('smc++').vcf2smc
 # use best fitting mdl
 psmcplot = sh.Command(PSMC_PATH + "/utils/psmc_plot.pl").bake("-n", 0)
 multihet = sh.Command(MSMC_PATH +
@@ -84,17 +88,17 @@ class MsPrimeSimulator(SimulationTask):
             msprime.DemographyDebugger(Ne=N0,
                     population_configurations=pc,
                     demographic_events=ev).print_history()
-        sim = msprime.simulate(
-                mutation_rate=MUTATION_RATE,
-                recombination_rate=RECOMBINATION_RATE,
-                demographic_events=ev,
-                population_configurations=pc,
-                random_seed=self.seed + int(self.contig_id) + 1,
-                Ne=N0,
-                length=GlobalConfig().chromosome_length)
-        base = self.output().path[:-len(".bcf.gz")] + ".orig.vcf"
-        sim.write_vcf(open(base, "wt"), ploidy=2,
-                      contig_id=self.contig_id)
+        kwargs = dict(mutation_rate=MUTATION_RATE,
+                      recombination_rate=RECOMBINATION_RATE,
+                      demographic_events=ev,
+                      population_configurations=pc,
+                      random_seed=self.seed + int(self.contig_id) + 1,
+                      Ne=N0,
+                      length=GlobalConfig().chromosome_length)
+        base = self.output().path[:-len('.bcf.gz')]
+        pkl = base + ".dat"
+        pickle.dump((kwargs, self.contig_id, base + ".orig.vcf"), open(pkl, 'wb'))
+        run_msprime(pkl)
         bcftools.view('-o', self.output().path, 
                       '-O', 'b',  # output bcf
                       '-s', ",".join(self.demo.samples()[0]), # take 1st pop only for now
