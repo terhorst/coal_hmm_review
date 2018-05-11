@@ -1,6 +1,6 @@
 #!/bin/bash -ex
-OUTPUT_DIRECTORY=$HOME/benchmark/output2
-rm -rf $OUTPUT_DIRECTORY/*
+OUTPUT_DIRECTORY=/scratch/terhorst/benchmark/output3
+# rm -rf $OUTPUT_DIRECTORY   ## THIS IS VERY DANGEROUS
 export PYTHONPATH=.
 mkdir -p $OUTPUT_DIRECTORY
 # luigi --module tasks \
@@ -11,10 +11,11 @@ mkdir -p $OUTPUT_DIRECTORY
 #      --GlobalConfig-output-directory $OUTPUT_DIRECTORY \
 #      --workers 24 --local-scheduler $@
 luigi --module tasks \
-     PlotAllCombined \
-     --PlotAllCombined-N 10 \
-     --PlotAllCombined-n-replicates 10 \
-     --GlobalConfig-n-contigs 10 \
+     PlotDical \
+     --PlotDical-N 10 \
+     --PlotDical-seed 1 \
+     --PlotDical-demography migration \
+     --GlobalConfig-n-contigs 1 \
      --GlobalConfig-chromosome-length 10_000_000 \
      --GlobalConfig-output-directory $OUTPUT_DIRECTORY \
      --workers 12 --local-scheduler $@

@@ -340,8 +340,7 @@ class PieceWiseConstantAnalysis:
         logPoint = [random.uniform(b[0], b[1]) for b in logBounds]
         point = [math.exp(x) for x in logPoint]
         point = [1] * self.numEpochs
-        self.startPointString = "'" + \
-            ",".join([("%.8f" % x) for x in point]) + "'"
+        self.startPointString = ",".join([("%.8f" % x) for x in point])
 
         # param file
         writeMutRecoParameterFile(self.paramFile, theta(
@@ -379,9 +378,7 @@ class PieceWiseConstantAnalysis:
         }
 
         if (self.numCores > 1):
-            parallelEmSteps = min(math.ceil(self.numCores / 2), 2)
-            # parallelString = " --parallel %d --metaParallelEmSteps %d" % (self.numCores, parallelEmSteps)
-            dicalCmd.update({'parallel', self.numCores})
+            dicalCmd.update({'parallel': self.numCores})
         return dicalCmd
 
 

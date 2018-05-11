@@ -18,7 +18,7 @@ import tempfile
 from config import *
 import demography
 import util
-import dical
+from dical import PieceWiseConstantAnalysis
 
 basedir = os.path.dirname(os.path.realpath(__file__))
 
@@ -34,7 +34,7 @@ else:
 smc_estimate = Command("smc++").estimate
 psmc = Command(PSMC_PATH + "/psmc").bake("-N", 20, "-p", "4+20*3+4")
 msmc = Command(MSMC_PATH + "/msmc_1.0.0_linux64bit").bake('-t', 2)
-dical = Command('java').bake('-Xmx16G', '-jar', 'cleanDiCal2.jar') 
+dical = Command('java').bake('-Xmx16G', '-jar', 'cleanDiCal2.jar')
 
 tabix = sh.Command("tabix")
 bgzip = sh.Command("bgzip")
@@ -330,7 +330,7 @@ class EstimateSizeHistoryDical(SimulationTask):
 
     def run(self):
         basename = self.output().path[:-len(".csv")]
-        da = dical.PieceWiseConstantAnalysis(
+        da = PieceWiseConstantAnalysis(
                 uniqueBasename=basename,
                 numCores=2,
                 vcfFiles=",".join([f.path for f in self.input()['vcf']]),
