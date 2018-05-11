@@ -17,16 +17,27 @@ import tempfile
 
 basedir = os.path.dirname(os.path.realpath(__file__))
 
-smc = sh.Command("smc++")
+def HpcCommand(cores, *args, **kwargs):
+    return sh.Command('sacct').bake('-c', cores, '-q', regular).srun
+
+if HPC:
+    Command = HpcCommand
+else:
+    Command = sh.Command
+
+smc_estimate = Command("smc++").estimate
+psmc = Command("psmc").bake("-N", 20, "-p", "4+20*3+4")
+msmc = Command("msmc_1.0.0_linux64bit").bake('-t', 2)
+# dical = Command()  # fixme
+
 tabix = sh.Command("tabix")
 bgzip = sh.Command("bgzip")
 bcftools = sh.Command("bcftools")
-psmc = sh.Command("/scratch/psmc/psmc").bake("-N", 20, "-p", "4+20*3+4")
+vcf2smc = sh.Command('smc++').vcf2smc
 # use best fitting mdl
 psmcplot = sh.Command("/scratch/psmc/utils/psmc_plot.pl").bake("-n", 0)
 psmc2hist = sh.Command("/scratch/psmc/utils/psmc2history.pl")
 psmc2msmc = sh.Command(os.path.join(basedir, "scripts", "psmc2msmc.R"))
-msmc = sh.Command("/scratch/msmc/msmc_1.0.0_linux64bit").bake('-t', 2)
 multihet = sh.Command(
     "/scratch/msmc/generate_multihetsep.py").bake(_no_err=True)
 msmc2csv = sh.Command(os.path.join(basedir, "scripts", "msmc2csv.R"))
@@ -175,7 +186,7 @@ class VCF2SMC(SimulationTask):
         samples = demo.samples()[0] # assume 1 pop for now
         undistinguished = set(samples) - set([self.distinguished])
         self.output().makedirs()
-        smc("vcf2smc",
+        vcf2smc(
                 # "-m", self.input()['centromeres'].path,
                 '-d', self.distinguished, self.distinguished,
                 self.input().path,
@@ -233,14 +244,14 @@ class EstimateSizeHistorySMC(SimulationTask):
         samples = self.demo.samples()
         out_path = os.path.dirname(self.output().path)
         initial_path = os.path.join(out_path, "initial")
-        smc.estimate('-v', 
+        smc_estimate('-v', 
             '-o', initial_path,
             '--em-iterations', 2,
             '--knots', 24,
             "--cores", 2,
             1.25e-8,
             *[f.path for f in self.input()])
-        smc.estimate('-v',
+        smc_estimate('-v',
             '-o', out_path,
             '--initial-model', os.path.join(initial_path, 'model.final.json'),
             "--cores", 2,
