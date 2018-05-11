@@ -376,9 +376,6 @@ class PieceWiseConstantAnalysis:
             "intervalType": "simple",
             "bounds": ";".join([",".join([str(x) for x in y]) for y in self.bounds])
         }
-
-        if (self.numCores > 1):
-            dicalCmd.update({'parallel': self.numCores})
         return dicalCmd
 
 
