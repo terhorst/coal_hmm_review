@@ -23,7 +23,8 @@ import dical
 basedir = os.path.dirname(os.path.realpath(__file__))
 
 def HpcCommand(cores, *args, **kwargs):
-    return sh.Command('salloc').bake('-C', 'haswell', '-q', regular).srun
+    return sh.Command('salloc').bake('-C', 'haswell',
+                                     '-q', 'regular').srun.bake('-c', cores)
 
 if HPC:
     Command = HpcCommand
@@ -31,8 +32,8 @@ else:
     Command = sh.Command
 
 smc_estimate = Command("smc++").estimate
-psmc = Command("psmc").bake("-N", 20, "-p", "4+20*3+4")
-msmc = Command("msmc_1.0.0_linux64bit").bake('-t', 2)
+psmc = Command(PSMC_PATH + "/psmc").bake("-N", 20, "-p", "4+20*3+4")
+msmc = Command(MSMC_PATH + "/msmc_1.0.0_linux64bit").bake('-t', 2)
 dical = Command('java').bake('-Xmx16G', '-jar', 'cleanDiCal2.jar') 
 
 tabix = sh.Command("tabix")
@@ -40,11 +41,9 @@ bgzip = sh.Command("bgzip")
 bcftools = sh.Command("bcftools")
 vcf2smc = sh.Command('smc++').vcf2smc
 # use best fitting mdl
-psmcplot = sh.Command("/scratch/psmc/utils/psmc_plot.pl").bake("-n", 0)
-psmc2hist = sh.Command("/scratch/psmc/utils/psmc2history.pl")
-psmc2msmc = sh.Command(os.path.join(basedir, "scripts", "psmc2msmc.R"))
-multihet = sh.Command(
-    "/scratch/msmc/generate_multihetsep.py").bake(_no_err=True)
+psmcplot = sh.Command(PSMC_PATH + "/utils/psmc_plot.pl").bake("-n", 0)
+multihet = sh.Command(MSMC_PATH +
+    "/generate_multihetsep.py").bake(_no_err=True)
 msmc2csv = sh.Command(os.path.join(basedir, "scripts", "msmc2csv.R"))
 psmc2csv = sh.Command(os.path.join(basedir, "scripts", "psmc2csv.R"))
 smc2csv = sh.Command(os.path.join(basedir, "scripts", "smc2csv.R"))

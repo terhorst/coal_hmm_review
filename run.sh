@@ -1,5 +1,5 @@
 #!/bin/bash -ex
-OUTPUT_DIRECTORY=/scratch/terhorst/benchmark/output2
+OUTPUT_DIRECTORY=$HOME/benchmark/output2
 rm -rf $OUTPUT_DIRECTORY/*
 export PYTHONPATH=.
 mkdir -p $OUTPUT_DIRECTORY

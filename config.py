@@ -1,7 +1,11 @@
-import os
-import pickle
-import luigi
 import importlib
+import luigi
+import pickle
+import os
+
+HPC = True
+PSMC_PATH = os.environ.get("PSMC_PATH", "/scratch/terhorst/psmc")
+MSMC_PATH = os.environ.get("MSMC_PATH", "/scratch/terhorst/msmc")
 
 HPC = False
 
