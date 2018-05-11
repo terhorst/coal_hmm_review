@@ -6,7 +6,7 @@ matplotlib.use('Agg') # Must be before importing matplotlib.pyplot or pylab!
 import matplotlib.pyplot as plt
 
 
-random.seed (4711)
+random.seed (4711)  # what is this for?
 
 
 def writeIsolationMigrationDemographyFile (filename, migrationAfterSplit):
@@ -639,7 +639,7 @@ class PieceWiseConstantAnalysis:
 		else:
 			parallelString = ""
 
-		dicalCmd = ("java -Xmx15G -jar %s" +
+		dicalCmd = ("java -Xmx8G -jar %s" +
 			" --paramFile %s" +
 			" --demoFile %s" +
 			" --configFile %s" +
@@ -707,10 +707,10 @@ class PieceWiseConstantAnalysis:
 
 		assert (len(mlePoint) == len(epochTimesInGen))
 		# now write it to file in hopefully right format
-		ofs = open (filename, "w")
-		for i in range(len(mlePoint)):
-			ofs.write ("%.3f\t%.3f\n" % (epochTimesInGen[i], mlePoint[i]))
-		ofs.close()
+		open(filename, "wt").write(
+                    "t,Ne,method\n" +
+                    "\n".join([f"{et},{ml},dical" for et, ml in zip(epochTimesInGen, mlePoint)])
+                )
 		# done
 
 

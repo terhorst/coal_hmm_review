@@ -11,26 +11,29 @@ import pickle
 import pysam
 import random
 import re
+import sh
+import shutil
 import tempfile
 
 basedir = os.path.dirname(os.path.realpath(__file__))
 
-import sh
 smc = sh.Command("smc++")
 tabix = sh.Command("tabix")
 bgzip = sh.Command("bgzip")
 bcftools = sh.Command("bcftools")
-psmc = sh.Command("/scratch/psmc/psmc").bake("-N", 15)
-psmcplot = sh.Command("/scratch/psmc/utils/psmc_plot.pl").bake("-n", 0) # use best fitting mdl
+psmc = sh.Command("/scratch/psmc/psmc").bake("-N", 20, "-p", "4+20*3+4")
+# use best fitting mdl
+psmcplot = sh.Command("/scratch/psmc/utils/psmc_plot.pl").bake("-n", 0)
 psmc2hist = sh.Command("/scratch/psmc/utils/psmc2history.pl")
 psmc2msmc = sh.Command(os.path.join(basedir, "scripts", "psmc2msmc.R"))
 msmc = sh.Command("/scratch/msmc/msmc_1.0.0_linux64bit").bake('-t', 2)
-multihet = sh.Command("/scratch/msmc/generate_multihetsep.py").bake(_no_err=True)
+multihet = sh.Command(
+    "/scratch/msmc/generate_multihetsep.py").bake(_no_err=True)
 msmc2csv = sh.Command(os.path.join(basedir, "scripts", "msmc2csv.R"))
 psmc2csv = sh.Command(os.path.join(basedir, "scripts", "psmc2csv.R"))
 smc2csv = sh.Command(os.path.join(basedir, "scripts", "smc2csv.R"))
-combine_plots = sh.Command(os.path.join(basedir, "scripts", "combine_plots.R")).bake(_no_err=True)
-
+combine_plots = sh.Command(os.path.join(
+    basedir, "scripts", "combine_plots.R")).bake(_no_err=True)
 from config import *
 import demography
 import util
@@ -47,7 +50,7 @@ class SimulationTask(luigi.Config):
 
     @property
     def demo(self):
-        return demography.factory(self.demography, self.N)
+        return demography.Demography.factory(self.demography, self.N)
 
     def local_target(self, *args):
         return GlobalConfig().local_target(
@@ -78,10 +81,13 @@ class MsPrimeSimulator(SimulationTask):
                 random_seed=self.seed + int(self.contig_id) + 1,
                 Ne=N0,
                 length=GlobalConfig().chromosome_length)
-        base = self.output().path[:-len(".bcf.gz")] + ".vcf"
+        base = self.output().path[:-len(".bcf.gz")] + ".orig.vcf"
         sim.write_vcf(open(base, "wt"), ploidy=2,
                       contig_id=self.contig_id)
-        bcftools.view('-o', self.output().path, '-O', 'b', base)
+        bcftools.view('-o', self.output().path, 
+                      '-O', 'b',  # output bcf
+                      '-s', ",".join(self.demo.samples()[0]), # take 1st pop only for now
+                      base)
         bcftools.index('-f', self.output().path)
 
 
@@ -165,7 +171,7 @@ class VCF2SMC(SimulationTask):
 
     def run(self):
         # Composite likelihood over first 3 individuals
-        demo = demography.factory(self.demography, self.N)
+        demo = demography.Demography.factory(self.demography, self.N)
         samples = demo.samples()[0] # assume 1 pop for now
         undistinguished = set(samples) - set([self.distinguished])
         self.output().makedirs()
@@ -309,10 +315,10 @@ class EstimateSizeHistoryDical(SimulationTask):
     def output(self):
         return self.local_target(
             "dical",
-            "analysis.out")
+            "results.csv")
 
     def run(self):
-        basename = self.output().path[:-len(".out")]
+        basename = self.output().path[:-len(".csv")]
         da = dical.PieceWiseConstantAnalysis(
                 uniqueBasename=basename,
                 numCores=2,
@@ -324,8 +330,7 @@ class EstimateSizeHistoryDical(SimulationTask):
         )
         cmd = da.run()
         os.system(cmd)
-        point, lik = da.returnMLE()
-        print(point, file=open(basename + ".mle", "wt"))
+        da.writeResultsCSV(self.output().path)
 
 
 @luigi.util.requires(EstimateSizeHistoryDical)
@@ -336,9 +341,7 @@ class PlotDical(SimulationTask):
             "plot.csv")
 
     def run(self):
-        # mattias: please fill in
-        pass
-
+        shutil.copy(self.input().path, self.output().path)
 
 @luigi.util.requires(EstimateSizeHistoryPSMC)
 class PlotPSMC(SimulationTask):
@@ -357,6 +360,12 @@ class PlotPSMC(SimulationTask):
                  self.input().path)
         psmc2csv(base + ".0.txt", self.output().path)
 
+class PlotAllCombined(luigi.WrapperTask):
+    N = luigi.IntParameter()
+    n_replicates = luigi.IntParameter()
+    def requires(self):
+        return [self.clone(PlotCombined, demography=demo)
+                for demo in demography.DEMOGRAPHIES]
 
 class PlotCombined(luigi.Task):
     demography = luigi.Parameter()
@@ -366,7 +375,7 @@ class PlotCombined(luigi.Task):
     def requires(self):
         return [self.clone(cls, demography=self.demography, seed=1 + i)
                 for i in range(self.n_replicates)
-                for cls in (PlotPSMC, PlotMSMC, PlotSMC, PlotDical)[:-1]]
+                for cls in (PlotPSMC, PlotMSMC, PlotSMC, PlotDical)]
 
     def output(self):
         return GlobalConfig().local_target(
@@ -375,7 +384,7 @@ class PlotCombined(luigi.Task):
                 f"{self.demography}.pdf")
 
     def run(self):
-        demo = demography.factory(self.demography, self.N)
+        demo = demography.Demography.factory(self.demography, self.N)
         truth_csv = self.output().path[:-4] + "_truth.csv"
         open(truth_csv, "wt").write(demo.to_csv(GENERATION_TIME))
         combine_plots(self.output().path,
