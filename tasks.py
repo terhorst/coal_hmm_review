@@ -34,7 +34,7 @@ def LocalCommand(cores=1):
 if HPC:
     Command = HpcCommand
 else:
-    Command = sh.Command
+    Command = LocalCommand
 
 smc_estimate = Command(cores=8)("smc++").estimate.bake(cores=8)
 psmc = Command()(PSMC_PATH + "/psmc").bake("-N", 20, "-p", "4+20*3+4")
@@ -97,12 +97,13 @@ class MsPrimeSimulator(SimulationTask):
                       length=GlobalConfig().chromosome_length)
         base = self.output().path[:-len('.bcf.gz')]
         pkl = base + ".dat"
-        pickle.dump((kwargs, self.contig_id, base + ".orig.vcf"), open(pkl, 'wb'))
+        orig = base + ".orig.vcf"
+        pickle.dump((kwargs, self.contig_id, orig), open(pkl, 'wb'))
         run_msprime(pkl)
         bcftools.view('-o', self.output().path, 
                       '-O', 'b',  # output bcf
                       '-s', ",".join(self.demo.samples()[0]), # take 1st pop only for now
-                      base)
+                      orig)
         bcftools.index('-f', self.output().path)
 
 
