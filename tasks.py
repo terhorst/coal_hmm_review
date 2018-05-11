@@ -15,10 +15,15 @@ import sh
 import shutil
 import tempfile
 
+from config import *
+import demography
+import util
+import dical
+
 basedir = os.path.dirname(os.path.realpath(__file__))
 
 def HpcCommand(cores, *args, **kwargs):
-    return sh.Command('sacct').bake('-c', cores, '-q', regular).srun
+    return sh.Command('salloc').bake('-C', 'haswell', '-q', regular).srun
 
 if HPC:
     Command = HpcCommand
@@ -28,7 +33,7 @@ else:
 smc_estimate = Command("smc++").estimate
 psmc = Command("psmc").bake("-N", 20, "-p", "4+20*3+4")
 msmc = Command("msmc_1.0.0_linux64bit").bake('-t', 2)
-# dical = Command()  # fixme
+dical = Command('java').bake('-Xmx16G', '-jar', 'cleanDiCal2.jar') 
 
 tabix = sh.Command("tabix")
 bgzip = sh.Command("bgzip")
@@ -45,10 +50,6 @@ psmc2csv = sh.Command(os.path.join(basedir, "scripts", "psmc2csv.R"))
 smc2csv = sh.Command(os.path.join(basedir, "scripts", "smc2csv.R"))
 combine_plots = sh.Command(os.path.join(
     basedir, "scripts", "combine_plots.R")).bake(_no_err=True)
-from config import *
-import demography
-import util
-import dical
 
 # All luigi tasks have to go in one big file for now due to circular
 # dependencies and luigi.util.require/inherit.
@@ -339,8 +340,8 @@ class EstimateSizeHistoryDical(SimulationTask):
                 sampleSize=self.N,
                 randomSeed=self.seed
         )
-        cmd = da.run()
-        os.system(cmd)
+        dical_args = da.run()
+        dical(**dical_args, _out=da.diCalOutputFileName)
         da.writeResultsCSV(self.output().path)
 
 

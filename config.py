@@ -3,6 +3,8 @@ import pickle
 import luigi
 import importlib
 
+HPC = False
+
 MUTATION_RATE = 1.25e-8
 RECOMBINATION_RATE = MUTATION_RATE / 10.
 N0 = 1e4
