@@ -109,6 +109,8 @@ DEMOGRAPHIES = {
             time=0, initial_size=2e4, population_id=1, growth_rate=0),
         msp.MigrationRateChange(time=500, rate=1/500, matrix_index=(0, 1)),
         msp.MigrationRateChange(time=500, rate=1/500, matrix_index=(1, 0)),
-        msp.MassMigration(time=1000, source=0, dest=1, proportion=1.0)
+        msp.MassMigration(time=1000, source=0, dest=1, proportion=1.0),
+        msp.MigrationRateChange(time=1000, rate=0, matrix_index=(0, 1)),
+        msp.MigrationRateChange(time=1000, rate=0, matrix_index=(1, 0))
     ])
 }

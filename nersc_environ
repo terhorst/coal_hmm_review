@@ -1,0 +1,3 @@
+PSMC_PATH=$HOME/opt/psmc
+MSMC_PATH=$HOME/opt/msmc
+export PSMC_PATH MSMC_PATH
