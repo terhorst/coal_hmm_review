@@ -23,9 +23,10 @@ from dical import PieceWiseConstantAnalysis
 basedir = os.path.dirname(os.path.realpath(__file__))
 
 def HpcCommand(cores=1):
-    return sh.Command('salloc').bake('-C', 'haswell',
-                                     '-A', 'm2871',
-                                     '-q', 'regular').srun.bake('-c', cores)
+    # return sh.Command('salloc').bake('-C', 'haswell',
+    #                                  '-A', 'm2871',
+    #                                  '-q', 'interactive').srun.bake('-c', cores).bake
+    return sh.Command('srun').bake('-c', cores, '-n', 1).bake
 
 def LocalCommand(cores=1):
     return sh.Command
@@ -39,7 +40,7 @@ else:
 smc_estimate = Command(cores=8)("smc++").estimate.bake(cores=8)
 psmc = Command()(PSMC_PATH + "/psmc").bake("-N", 20, "-p", "4+20*3+4")
 msmc = Command(cores=8)(MSMC_PATH + "/msmc_1.0.0_linux64bit").bake('-t', 8)
-dical = Command(cores=8)('java').bake('-Xmx16G', '-jar', 'cleanDiCal2.jar').bake(parallel=8)
+dical = Command(cores=8)("java").bake('-Xmx16G', '-jar', 'cleanDiCal2.jar', parallel=8)
 bcftools = Command()("bcftools")
 vcf2smc = Command()('smc++').vcf2smc
 run_msprime = Command()(os.path.join(basedir, "scripts", "run_msprime.py"))
