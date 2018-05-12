@@ -656,7 +656,6 @@ class PieceWiseConstantAnalysis:
 		# point = [10]*self.numEpochs
 		self.startPointString = "'" + ",".join([("%.8f" % x) for x in point]) + "'"
 
-
 		# param file
 		writeMutRecoParameterFile (self.paramFile, theta (self.Nref, self.mu), rho (self.Nref, self.r))
 
@@ -671,62 +670,37 @@ class PieceWiseConstantAnalysis:
 		writePieceWiseConstantDemographyFile (self.demoFile, self.numEpochs, self.epochTimes, 0)
 
 
-	def run (self):
-
+    def run(self):
+        dicalCmd = {
+            "paramFile": self.paramFile,
+            "demoFile": self.demoFile,
+            "configFile": self.configFile,
+            "vcfFile": self.vcfFileList,
+            "vcfFilterPassString": 'PASS',
+            "vcfReferenceFile": self.refFileList,
+            "seed": self.seeed,
+            "lociPerHmmStep": self.numLociPerHmmStep,
+            "compositeLikelihood": self.cl,
+            "startPoint": self.startPointString,
+			# "metaStartFile": self.metaStartFile,
+			# "metaNumIterations": self.metaNumIterations,
+			# "metaKeepBest": self.metaKeepBest,
+			# "metaNumPoints": self.metaNumPoints,
+            "numberIterationsEM": self.numEMiterations,
+            "numberIterationsMstep": self.numIterationsMstep,
+			# "disableCoordinateWiseMStep": True,
+            "printEmPath": True,
+            "intervalType": "simple",
+			# "intervalType": "logUniform",
+			# "intervalParams": "'11,0.01,4'",
+            "bounds": ";".join([",".join([str(x) for x in y]) for y in self.bounds])
+        }
+        # see about parallelism
 		if (self.numCores > 1):
-			parallelEmSteps = min (math.ceil (self.numCores / 2), 2)
-			# parallelString = " --parallel %d --metaParallelEmSteps %d" % (self.numCores, parallelEmSteps)
-			parallelString = " --parallel %d" % (self.numCores)
-		else:
-			parallelString = ""
+			dicalCmd["parallel"] = self.numCores
 
-		dicalCmd = ("java -Xmx15G -jar %s" +
-			" --paramFile %s" +
-			" --demoFile %s" +
-			" --configFile %s" +
-			" --vcfFile %s" +
-			" --vcfFilterPassString 'PASS'" +
-			" --vcfReferenceFile %s" +
-			" --seed %d" +
-			" --lociPerHmmStep %d" +
-			" --compositeLikelihood %s" +
-			" --startPoint %s" +
-			# " --metaStartFile %s" +
-			# " --metaNumIterations %d" +
-			# " --metaKeepBest %d" +
-			# " --metaNumPoints %d" +
-			" --numberIterationsEM %d" +
-			# " --disableCoordinateWiseMStep" +
-			" --numberIterationsMstep %d" +
-			" --printEmPath" +
-			" --intervalType simple" +
-			# " --cakeStyle beginning" +
-			# " --intervalType logUniform" +
-			# " --intervalParams '11,0.01,4'" +
-			" --bounds '%s'" +
-			"%s" +
-			" >%s") % (
-			self.jarFile,
-			self.paramFile,
-			self.demoFile,
-			self.configFile, 
-			self.vcfFileList,
-			self.refFileList,
-			self.seeed,
-			self.numLociPerHmmStep,
-			self.cl,
-			self.startPointString,
-			# self.metaStartFile,
-			# self.metaNumIterations,
-			# self.metaKeepBest,
-			# self.metaNumPoints,
-			self.numEMiterations,
-			self.numIterationsMstep,
-			";".join([",".join([str(x) for x in y]) for y in self.bounds]),
-			parallelString,
-			self.diCalOutputFileName)
-
-		return dicalCmd
+		# and return stuff
+        return dicalCmd
 
 
 	def returnMLE (self):
