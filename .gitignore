@@ -2,9 +2,8 @@
 __pycache__
 pipeline.output
 input.data
-test.pdf
-catfish.dical_out
-popSize.pdf
-catfishFour.dical_out
-catfishFive.dical_out
-Rplots.pdf
+*.pdf
+*.dical_out
+*.demo
+*.config
+bak.dical.py
