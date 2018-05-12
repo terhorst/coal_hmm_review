@@ -1,0 +1,4 @@
+PSMC_PATH=$HOME/opt/psmc
+MSMC_PATH=$HOME/opt/msmc
+LUIGI_CONFIG_PATH=$HOME/coal_hmm_review/nersc/luigi.cfg
+export PSMC_PATH MSMC_PATH LUIGI_CONFIG_PATH
