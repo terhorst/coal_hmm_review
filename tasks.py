@@ -318,7 +318,7 @@ class DicalRef(SimulationTask):
         open(self.output().path, "wt").write(
             "> contig1\n" +
             ("A" * 80 + "\n") * (L // 80) +
-            ("T" * (L % 80))
+            ("A" * (L % 80))
         )
 
 class EstimateSizeHistoryDical(SimulationTask):
