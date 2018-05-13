@@ -1,7 +1,12 @@
-import os
-import pickle
-import luigi
 import importlib
+import luigi
+import pickle
+import os
+
+HPC = os.environ.get("HPC", False)
+print("HPC mode:", HPC)
+PSMC_PATH = os.environ.get("PSMC_PATH", "/scratch/terhorst/psmc")
+MSMC_PATH = os.environ.get("MSMC_PATH", "/scratch/terhorst/msmc")
 
 MUTATION_RATE = 1.25e-8
 RECOMBINATION_RATE = MUTATION_RATE / 10.
