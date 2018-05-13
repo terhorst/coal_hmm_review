@@ -703,7 +703,7 @@ class PieceWiseConstantAnalysis:
             "seed": self.seeed,
             "lociPerHmmStep": self.numLociPerHmmStep,
             "compositeLikelihood": self.cl,
-            "startPoint": self.startPointString,
+            "startPoint": self.startPointString[1:-1],
             # "metaStartFile": self.metaStartFile,
             # "metaNumIterations": self.metaNumIterations,
             # "metaKeepBest": self.metaKeepBest,
@@ -718,10 +718,10 @@ class PieceWiseConstantAnalysis:
             "bounds": ";".join([",".join([str(x) for x in y]) for y in self.bounds])
         }
         # see about parallelism
-            if (self.numCores > 1):
-                dicalCmd["parallel"] = self.numCores
+        if (self.numCores > 1):
+            dicalCmd["parallel"] = self.numCores
 
-            # and return stuff
+        # and return stuff
         return dicalCmd
 
     def returnMLE(self):
