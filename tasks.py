@@ -26,7 +26,7 @@ def HpcCommand(cores=1):
     # return sh.Command('salloc').bake('-C', 'haswell',
     #                                  '-A', 'm2871',
     #                                  '-q', 'interactive').srun.bake('-c', cores).bake
-    return sh.Command('srun').bake('-c', cores, '-n', 1).bake
+    return sh.Command('srun').bake('-c', cores, '-N', 1, '-n', 1).bake
 
 def LocalCommand(cores=1):
     return sh.Command
