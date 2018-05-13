@@ -338,7 +338,7 @@ class EstimateSizeHistoryDical(SimulationTask):
         basename = self.output().path[:-len(".csv")]
         da = PieceWiseConstantAnalysis(
                 uniqueBasename=basename,
-                numCores=2,
+                numCores=1,  # set parallel above
                 vcfFiles=",".join([f.path for f in self.input()['vcf']]),
                 refFiles=",".join([self.input()['ref'].path 
                                   for _ in range(len(self.input()['vcf']))]),
