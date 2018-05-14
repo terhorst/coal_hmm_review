@@ -10,3 +10,4 @@ bak.dical.py
 weird_merger.dical.py
 slurm*.out
 dical.out
+*.svg
