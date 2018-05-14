@@ -7,9 +7,9 @@ df = args[-1] %>%
      map(read_csv) %>%
      map2(seq_along(.), ~ mutate(.x, i = .y)) %>%
      reduce(rbind)
-write_csv(df, str_c(out, ".csv"))
-df_truth = df %>% filter(str_sub(method, 0, 5) == "truth")
-df_est = df %>% filter(str_sub(method, 0, 5) != "truth")
+write_csv(df, stringr::str_c(out, ".csv"))
+df_truth = df %>% filter(stringr::str_sub(method, 0, 5) == "truth")
+df_est = df %>% filter(stringr::str_sub(method, 0, 5) != "truth")
 extended = df_est %>% group_by(method) %>% top_n(1, t) %>% mutate(t=max(t, 1e7)) %>% bind_rows(df_est)
 # extended = mutate(extended, t = pmax(t, 10)) %>% print(n=Inf)
 df_truth = mutate(df_truth, t = pmax(t, 10)) %>% print

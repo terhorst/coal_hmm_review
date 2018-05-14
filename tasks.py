@@ -41,8 +41,6 @@ smc_estimate = Command(cores=8)("smc++").estimate.bake(cores=8)
 psmc = Command()(PSMC_PATH + "/psmc").bake("-N", 20, "-p", "4+20*3+4")
 msmc = Command(cores=8)(MSMC_PATH + "/msmc_1.0.0_linux64bit").bake('-t', 8)
 dical = Command(cores=8)("java").bake('-Xmx16G', '-jar', 'cleanDiCal2.jar', parallel=8)
-bcftools = Command()("bcftools")
-bcftools_local = sh.Command('bcftools')
 vcf2smc = Command()('smc++').vcf2smc
 run_msprime = Command()(os.path.join(basedir, "scripts", "run_msprime.py"))
 
@@ -55,6 +53,10 @@ psmc2csv = sh.Command(os.path.join(basedir, "scripts", "psmc2csv.R"))
 smc2csv = sh.Command(os.path.join(basedir, "scripts", "smc2csv.R"))
 combine_plots = sh.Command(os.path.join(
     basedir, "scripts", "combine_plots.R")).bake(_no_err=True)
+# bcftools = Command()("bcftools")
+bcftools_local = sh.Command('bcftools')
+bcftools = bcftools_local  # seems to cause problems with cluster, revert to local
+smc_plot = sh.Command("smc++").plot
 
 # All luigi tasks have to go in one big file for now due to circular
 # dependencies and luigi.util.require/inherit.
@@ -101,7 +103,8 @@ class MsPrimeSimulator(SimulationTask):
         pkl = base + ".dat"
         orig = base + ".orig.vcf"
         pickle.dump((kwargs, self.contig_id, orig), open(pkl, 'wb'))
-        run_msprime(pkl)
+        # run_msprime(pkl)
+        msprime.simulate(**kwargs).write_vcf(open(orig, "wt"), ploidy=2, contig_id=self.contig_id)
         bcftools.view('-o', self.output().path, 
                       '-O', 'b',  # output bcf
                       '-s', ",".join(self.demo.samples()[0]), # take 1st pop only for now
@@ -280,7 +283,7 @@ class PlotSMC(SimulationTask):
 
     def run(self):
         pdf = self.output().path[:-3] + "pdf"
-        smc.plot('-g', GENERATION_TIME, "-c", 
+        smc_plot('-g', GENERATION_TIME, "-c",
                  pdf,
                  self.input().path)
         smc2csv(self.output().path, 
