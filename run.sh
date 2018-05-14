@@ -1,11 +1,6 @@
 #!/bin/bash -ex
-#-SBATCH -C haswell
-#SBATCH -A m2871
-#SBATCH -q premium
-#SBATCH -N 8
 export PYTHONPATH=.
-OUTPUT_DIRECTORY=/project/projectdirs/m2871/terhorst/coal_hmm_review/pipeline.output
-# rm -rf $OUTPUT_DIRECTORY
+OUTPUT_DIRECTORY=/project/projectdirs/m2871/terhorst/coal_hmm_review/pipeline.output.test
 mkdir -p $OUTPUT_DIRECTORY
 # luigi --module tasks \
 #      EstimateManyReplicates \
@@ -16,12 +11,12 @@ mkdir -p $OUTPUT_DIRECTORY
 #      --workers 24 --local-scheduler $@
 luigi --module tasks \
      PlotAllCombined \
-     --PlotAllCombined-N 100 \
+     --PlotAllCombined-N 10 \
      --PlotAllCombined-n-replicates 1 \
-     --GlobalConfig-n-contigs 10 \
-     --GlobalConfig-chromosome-length 100_000_000 \
+     --GlobalConfig-n-contigs 1 \
+     --GlobalConfig-chromosome-length 10_000_000 \
      --GlobalConfig-output-directory $OUTPUT_DIRECTORY \
-     --workers 128 $@
+     --workers 16 --local-scheduler $@
 # luigi --module tasks \
 #      PlotDical \
 #      --PlotDical-N 10 \

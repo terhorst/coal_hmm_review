@@ -11,8 +11,8 @@ mkdir -p $OUTPUT_DIRECTORY
 HPC=1 luigi --module tasks \
      PlotAllCombined \
      --PlotAllCombined-N 100 \
-     --PlotAllCombined-n-replicates 1 \
-     --GlobalConfig-n-contigs 10 \
-     --GlobalConfig-chromosome-length 100_000_000 \
+     --PlotAllCombined-n-replicates 20 \
+     --GlobalConfig-n-contigs 8 \
+     --GlobalConfig-chromosome-length 125_000_000 \
      --GlobalConfig-output-directory $OUTPUT_DIRECTORY \
-     --workers 128 $@
+     --workers 512 $@
