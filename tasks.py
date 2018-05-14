@@ -42,6 +42,7 @@ psmc = Command()(PSMC_PATH + "/psmc").bake("-N", 20, "-p", "4+20*3+4")
 msmc = Command(cores=8)(MSMC_PATH + "/msmc_1.0.0_linux64bit").bake('-t', 8)
 dical = Command(cores=8)("java").bake('-Xmx16G', '-jar', 'cleanDiCal2.jar', parallel=8)
 bcftools = Command()("bcftools")
+bcftools_local = sh.Command('bcftools')
 vcf2smc = Command()('smc++').vcf2smc
 run_msprime = Command()(os.path.join(basedir, "scripts", "run_msprime.py"))
 
@@ -124,11 +125,15 @@ class SplitVCF(SimulationTask):
 
 @luigi.util.requires(MsPrimeSimulator)
 class BCF2VCF(SimulationTask):
+    sample_size = luigi.IntParameter()  # take first <sample_size> diploids
     def output(self):
-        return self.local_target(f"msp_chr{self.contig_id}.vcf")
+        return self.local_target('dical', f"msp_chr{self.contig_id}.vcf")
 
     def run(self):
-        bcftools.view("-O", "v", "-o", self.output().path, self.input().path)
+        samples = bcftools_local.query(
+            '-l', self.input().path).strip().split("\n")[:self.sample_size]
+        bcftools.view("-O", "v", "-s", ",".join(samples),
+                      "-o", self.output().path, self.input().path)
 
 
 @luigi.util.inherits(MsPrimeSimulator)
@@ -322,12 +327,14 @@ class DicalRef(SimulationTask):
         )
 
 class EstimateSizeHistoryDical(SimulationTask):
+    diploid_sample_size = luigi.IntParameter(2)
+
     def requires(self):
         return {
-                'vcf': [self.clone(BCF2VCF, contig_id=str(k))
-                        for k in range(GlobalConfig().n_contigs)],
-                'ref': self.clone(DicalRef)
-                }
+            'vcf': [self.clone(BCF2VCF, contig_id=str(k), sample_size=self.diploid_sample_size)
+                    for k in range(GlobalConfig().n_contigs)],
+            'ref': self.clone(DicalRef)
+        }
 
     def output(self):
         return self.local_target(
@@ -342,7 +349,7 @@ class EstimateSizeHistoryDical(SimulationTask):
                 vcfFiles=",".join([f.path for f in self.input()['vcf']]),
                 refFiles=",".join([self.input()['ref'].path 
                                   for _ in range(len(self.input()['vcf']))]),
-                sampleSize=self.N,
+                sampleSize=2 * self.diploid_sample_size,
                 randomSeed=self.seed
         )
         dical_args = da.run()
