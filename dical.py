@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 from cycler import cycler
 import numpy
 
-random.seed(4714)  # what is this for?
+random.seed(4715)  # what is this for?
 
 
 def writeIsolationMigrationDemographyFile(filename, migration, migrationStops, parameterList):
@@ -123,8 +123,8 @@ def writeMutRecoParameterFile(filename, mutRate, recoRate):
     ofs.write("# recombination rate\n")
     ofs.write("%s\n" % str(recoRate))
     ofs.write("# mutation matrix (2 alleles)\n")
-    ofs.write("0	1\n")
-    ofs.write("1	0\n")
+    ofs.write("0    1\n")
+    ofs.write("1    0\n")
     # be nice
     ofs.close()
 
@@ -324,288 +324,288 @@ def returnMLE(outputFilename):
 
 # class ExpGrowthEstimateOnsetTimeAnalysis:
 
-# 	metaNumStartPoints = 10
-# 	metaNumPoints = 5
-# 	metaKeepBest = 2
-# 	metaNumIterations = 3
-# 	numEMiterations = 3
-# 	numIterationsMstep = 3
+#   metaNumStartPoints = 10
+#   metaNumPoints = 5
+#   metaKeepBest = 2
+#   metaNumIterations = 3
+#   numEMiterations = 3
+#   numIterationsMstep = 3
 
-# 	cl = "lol"
+#   cl = "lol"
 
-# 	numLociPerHmmStep = 500
+#   numLociPerHmmStep = 500
 
-# 	Nref = 10000
-# 	mu = 1.25e-8
-# 	r = 1.25e-8
+#   Nref = 10000
+#   mu = 1.25e-8
+#   r = 1.25e-8
 
-# 	numEpochs = 3
-# 	# firstFixedTimeInGen = 1000
-# 	# lastFixedTimeInGen = 3000
-# 	fixedTimeInGen = 2000
+#   numEpochs = 3
+#   # firstFixedTimeInGen = 1000
+#   # lastFixedTimeInGen = 3000
+#   fixedTimeInGen = 2000
 
-# 	# bounds related stuff
-# 	minPerGenGrowth = 0.0001
-# 	maxPerGenGrowth = 2
-# 	minBoundTimeInGen = 100
-# 	maxBoundTimeInGen = 1000
-# 	maxSize = 100000
-# 	minSize = 100
+#   # bounds related stuff
+#   minPerGenGrowth = 0.0001
+#   maxPerGenGrowth = 2
+#   minBoundTimeInGen = 100
+#   maxBoundTimeInGen = 1000
+#   maxSize = 100000
+#   minSize = 100
 
-# 	jarFile = "cleanDiCal2.jar"
-
-
-# 	def __init__ (self, uniqueBasename, numCores, vcfFiles, refFiles, sampleSize, randomSeed):
-# 		self.vcfFileList = vcfFiles
-# 		self.refFileList = refFiles
-# 		self.seeed = randomSeed
-# 		self.numCores = numCores
-
-# 		self.diCalOutputFileName = "%s.dical_out" % uniqueBasename
-# 		self.paramFile = "%s.param" % uniqueBasename
-# 		self.demoFile = "%s.demo" % uniqueBasename
-# 		self.rateFile = "%s.rates" % uniqueBasename
-# 		self.configFile = "%s.config" % uniqueBasename
-
-# 		# put together the bounds
-# 		# one parameter per epoch
-# 		self.bounds = []
-# 		self.bounds.extend ([[PerGenPercentToExpRate (self.Nref, self.minPerGenGrowth), PerGenPercentToExpRate (self.Nref, self.maxPerGenGrowth)]])
-# 		self.bounds.extend ([[GenTimeToCoalTime (self.Nref, self.minBoundTimeInGen), GenTimeToCoalTime (self.Nref, self.maxBoundTimeInGen)]])
-# 		# self.bounds.extend ([[GenTimeToCoalTime (self.Nref, 10*self.minBoundTimeInGen), GenTimeToCoalTime (self.Nref, 10*self.maxBoundTimeInGen)]])
-# 		self.bounds.extend ([[DiploidSizeToCoalSize (self.Nref, self.minSize), DiploidSizeToCoalSize (self.Nref, self.maxSize)]]*self.numEpochs)
-
-# 		# random starting points
-# 		self.metaStartFile = "%s.rand" % uniqueBasename
-# 		samplingRegionFactor = 0.25
-# 		samplingRegion = [[math.exp (math.log(bs[0]) + samplingRegionFactor * (math.log(bs[1]) - math.log(bs[0]))), math.exp (math.log(bs[0]) + (1-samplingRegionFactor) * (math.log(bs[1]) - math.log(bs[0])))] for bs in self.bounds]
-# 		logUniformStartingPointsFile (self.metaStartFile, self.metaNumStartPoints, samplingRegion)
-
-# 		# param file
-# 		writeMutRecoParameterFile (self.paramFile, theta (self.Nref, self.mu), rho (self.Nref, self.r))
-
-# 		# config file
-# 		# numLoci doesn't even matter, also, two alleles and one deme
-# 		writeConfigFile (self.configFile, 123456, 2, 1, [sampleSize])
-
-# 		# demography file
-# 		# firstTime = GenTimeToCoalTime (self.Nref, self.firsTimeInGen)
-# 		# lastTime = GenTimeToCoalTime (self.Nref, self.lastTimeInGen)
-# 		# themTimes = [math.exp(math.log(firstTime) + x/float(self.numEpochs-2) * (math.log(lastTime) - math.log(firstTime))) for x in range(self.numEpochs-1)]
-# 		# at the moment, there is only one
-# 		givenTimes = [GenTimeToCoalTime (self.Nref, self.fixedTimeInGen)]
-# 		writePieceWiseConstantDemographyFile (self.demoFile, self.numEpochs, givenTimes, 1)
-# 		writeOnePopExpRateRecentFile (self.rateFile, self.numEpochs)
+#   jarFile = "cleanDiCal2.jar"
 
 
-# 	def run (self):
+#   def __init__ (self, uniqueBasename, numCores, vcfFiles, refFiles, sampleSize, randomSeed):
+#       self.vcfFileList = vcfFiles
+#       self.refFileList = refFiles
+#       self.seeed = randomSeed
+#       self.numCores = numCores
 
-# 		if (self.numCores > 1):
-# 			parallelEmSteps = math.ceil (self.numCores / 2)
-# 			parallelString = " --parallel %d --metaParallelEmSteps %d" % (self.numCores, parallelEmSteps)
-# 		else:
-# 			parallelString = ""
+#       self.diCalOutputFileName = "%s.dical_out" % uniqueBasename
+#       self.paramFile = "%s.param" % uniqueBasename
+#       self.demoFile = "%s.demo" % uniqueBasename
+#       self.rateFile = "%s.rates" % uniqueBasename
+#       self.configFile = "%s.config" % uniqueBasename
 
-# 		dicalCmd = ("java -Xmx30G -jar %s" +
-# 			" --paramFile %s" +
-# 			" --demoFile %s" +
-# 			" --ratesFile %s" +
-# 			" --configFile %s" +
-# 			" --vcfFile %s" +
-# 			" --vcfFilterPassString 'PASS'" +
-# 			" --vcfReferenceFile %s" +
-# 			" --seed %d" +
-# 			" --lociPerHmmStep %d" +
-# 			" --compositeLikelihood %s" +
-# 			" --metaStartFile %s" +
-# 			" --metaNumIterations %d" +
-# 			" --metaKeepBest %d" +
-# 			" --metaNumPoints %d" +
-# 			" --numberIterationsEM %d" +
-# 			" --numberIterationsMstep %d" +
-# 			" --printEmPath" +
-# 			# " --intervalType simple" +
-# 			" --intervalType logUniform" +
-# 			" --intervalParams '11,0.01,4'" +
-# 			" --bounds '%s'" +
-# 			"%s" +
-# 			" >%s") % (
-# 			self.jarFile,
-# 			self.paramFile,
-# 			self.demoFile,
-# 			self.rateFile,
-# 			self.configFile,
-# 			self.vcfFileList,
-# 			self.refFileList,
-# 			self.seeed,
-# 			self.numLociPerHmmStep,
-# 			self.cl,
-# 			self.metaStartFile,
-# 			self.metaNumIterations,
-# 			self.metaKeepBest,
-# 			self.metaNumPoints,
-# 			self.numEMiterations,
-# 			self.numIterationsMstep,
-# 			";".join([",".join([str(x) for x in y]) for y in self.bounds]),
-# 			parallelString,
-# 			self.diCalOutputFileName)
+#       # put together the bounds
+#       # one parameter per epoch
+#       self.bounds = []
+#       self.bounds.extend ([[PerGenPercentToExpRate (self.Nref, self.minPerGenGrowth), PerGenPercentToExpRate (self.Nref, self.maxPerGenGrowth)]])
+#       self.bounds.extend ([[GenTimeToCoalTime (self.Nref, self.minBoundTimeInGen), GenTimeToCoalTime (self.Nref, self.maxBoundTimeInGen)]])
+#       # self.bounds.extend ([[GenTimeToCoalTime (self.Nref, 10*self.minBoundTimeInGen), GenTimeToCoalTime (self.Nref, 10*self.maxBoundTimeInGen)]])
+#       self.bounds.extend ([[DiploidSizeToCoalSize (self.Nref, self.minSize), DiploidSizeToCoalSize (self.Nref, self.maxSize)]]*self.numEpochs)
 
-# 		return dicalCmd
+#       # random starting points
+#       self.metaStartFile = "%s.rand" % uniqueBasename
+#       samplingRegionFactor = 0.25
+#       samplingRegion = [[math.exp (math.log(bs[0]) + samplingRegionFactor * (math.log(bs[1]) - math.log(bs[0]))), math.exp (math.log(bs[0]) + (1-samplingRegionFactor) * (math.log(bs[1]) - math.log(bs[0])))] for bs in self.bounds]
+#       logUniformStartingPointsFile (self.metaStartFile, self.metaNumStartPoints, samplingRegion)
+
+#       # param file
+#       writeMutRecoParameterFile (self.paramFile, theta (self.Nref, self.mu), rho (self.Nref, self.r))
+
+#       # config file
+#       # numLoci doesn't even matter, also, two alleles and one deme
+#       writeConfigFile (self.configFile, 123456, 2, 1, [sampleSize])
+
+#       # demography file
+#       # firstTime = GenTimeToCoalTime (self.Nref, self.firsTimeInGen)
+#       # lastTime = GenTimeToCoalTime (self.Nref, self.lastTimeInGen)
+#       # themTimes = [math.exp(math.log(firstTime) + x/float(self.numEpochs-2) * (math.log(lastTime) - math.log(firstTime))) for x in range(self.numEpochs-1)]
+#       # at the moment, there is only one
+#       givenTimes = [GenTimeToCoalTime (self.Nref, self.fixedTimeInGen)]
+#       writePieceWiseConstantDemographyFile (self.demoFile, self.numEpochs, givenTimes, 1)
+#       writeOnePopExpRateRecentFile (self.rateFile, self.numEpochs)
 
 
-# 	def returnMLE (self):
-# 		# get the MLE
-# 		(mlePoint, maxLike) = returnMLE (self.diCalOutputFileName)
+#   def run (self):
 
-# 		# convert it to real scales
-# 		realMlePoint = ([ExpRateToPerGenPercent (self.Nref, mlePoint[0])] +
-# 			[CoalTimeToGenTime (self.Nref, mlePoint[1])] +
-# 			[CoalSizeToDiploidSize (self.Nref, x) for x in mlePoint[2:]])
+#       if (self.numCores > 1):
+#           parallelEmSteps = math.ceil (self.numCores / 2)
+#           parallelString = " --parallel %d --metaParallelEmSteps %d" % (self.numCores, parallelEmSteps)
+#       else:
+#           parallelString = ""
 
-# 		# and return it
-# 		return (realMlePoint, maxLike)
+#       dicalCmd = ("java -Xmx30G -jar %s" +
+#           " --paramFile %s" +
+#           " --demoFile %s" +
+#           " --ratesFile %s" +
+#           " --configFile %s" +
+#           " --vcfFile %s" +
+#           " --vcfFilterPassString 'PASS'" +
+#           " --vcfReferenceFile %s" +
+#           " --seed %d" +
+#           " --lociPerHmmStep %d" +
+#           " --compositeLikelihood %s" +
+#           " --metaStartFile %s" +
+#           " --metaNumIterations %d" +
+#           " --metaKeepBest %d" +
+#           " --metaNumPoints %d" +
+#           " --numberIterationsEM %d" +
+#           " --numberIterationsMstep %d" +
+#           " --printEmPath" +
+#           # " --intervalType simple" +
+#           " --intervalType logUniform" +
+#           " --intervalParams '11,0.01,4'" +
+#           " --bounds '%s'" +
+#           "%s" +
+#           " >%s") % (
+#           self.jarFile,
+#           self.paramFile,
+#           self.demoFile,
+#           self.rateFile,
+#           self.configFile,
+#           self.vcfFileList,
+#           self.refFileList,
+#           self.seeed,
+#           self.numLociPerHmmStep,
+#           self.cl,
+#           self.metaStartFile,
+#           self.metaNumIterations,
+#           self.metaKeepBest,
+#           self.metaNumPoints,
+#           self.numEMiterations,
+#           self.numIterationsMstep,
+#           ";".join([",".join([str(x) for x in y]) for y in self.bounds]),
+#           parallelString,
+#           self.diCalOutputFileName)
+
+#       return dicalCmd
+
+
+#   def returnMLE (self):
+#       # get the MLE
+#       (mlePoint, maxLike) = returnMLE (self.diCalOutputFileName)
+
+#       # convert it to real scales
+#       realMlePoint = ([ExpRateToPerGenPercent (self.Nref, mlePoint[0])] +
+#           [CoalTimeToGenTime (self.Nref, mlePoint[1])] +
+#           [CoalSizeToDiploidSize (self.Nref, x) for x in mlePoint[2:]])
+
+#       # and return it
+#       return (realMlePoint, maxLike)
 
 
 # class ExpGrowthFixedOnsetTimeAnalysis:
 
-# 	metaNumStartPoints = 10
-# 	metaNumPoints = 5
-# 	metaKeepBest = 2
-# 	metaNumIterations = 3
-# 	numEMiterations = 3
-# 	numIterationsMstep = 3
+#   metaNumStartPoints = 10
+#   metaNumPoints = 5
+#   metaKeepBest = 2
+#   metaNumIterations = 3
+#   numEMiterations = 3
+#   numIterationsMstep = 3
 
-# 	cl = "lol"
+#   cl = "lol"
 
-# 	numLociPerHmmStep = 500
+#   numLociPerHmmStep = 500
 
-# 	Nref = 10000
-# 	mu = 1.25e-8
-# 	r = 1.25e-8
+#   Nref = 10000
+#   mu = 1.25e-8
+#   r = 1.25e-8
 
-# 	numEpochs = 3
-# 	firstFixedTimeInGen = 1000
-# 	lastFixedTimeInGen = 3000
-# 	# fixedTimeInGen = 2000
+#   numEpochs = 3
+#   firstFixedTimeInGen = 1000
+#   lastFixedTimeInGen = 3000
+#   # fixedTimeInGen = 2000
 
-# 	# bounds related stuff
-# 	minPerGenGrowth = 0.0001
-# 	maxPerGenGrowth = 2
-# 	minBoundTimeInGen = 100
-# 	maxBoundTimeInGen = 1000
-# 	maxSize = 100000
-# 	minSize = 100
+#   # bounds related stuff
+#   minPerGenGrowth = 0.0001
+#   maxPerGenGrowth = 2
+#   minBoundTimeInGen = 100
+#   maxBoundTimeInGen = 1000
+#   maxSize = 100000
+#   minSize = 100
 
-# 	jarFile = "cleanDiCal2.jar"
-
-
-# 	def __init__ (self, uniqueBasename, numCores, vcfFiles, refFiles, sampleSize, randomSeed):
-# 		self.vcfFileList = vcfFiles
-# 		self.refFileList = refFiles
-# 		self.seeed = randomSeed
-# 		self.numCores = numCores
-
-# 		self.diCalOutputFileName = "%s.out" % uniqueBasename
-# 		self.paramFile = "%s.param" % uniqueBasename
-# 		self.demoFile = "%s.demo" % uniqueBasename
-# 		self.rateFile = "%s.rates" % uniqueBasename
-# 		self.configFile = "%s.config" % uniqueBasename
-
-# 		# put together the bounds
-# 		# one parameter per epoch
-# 		self.bounds = []
-# 		self.bounds.extend ([[PerGenPercentToExpRate (self.Nref, self.minPerGenGrowth), PerGenPercentToExpRate (self.Nref, self.maxPerGenGrowth)]])
-# 		# self.bounds.extend ([[GenTimeToCoalTime (self.Nref, self.minBoundTimeInGen), GenTimeToCoalTime (self.Nref, self.maxBoundTimeInGen)]])
-# 		# self.bounds.extend ([[GenTimeToCoalTime (self.Nref, 10*self.minBoundTimeInGen), GenTimeToCoalTime (self.Nref, 10*self.maxBoundTimeInGen)]])
-# 		self.bounds.extend ([[DiploidSizeToCoalSize (self.Nref, self.minSize), DiploidSizeToCoalSize (self.Nref, self.maxSize)]]*self.numEpochs)
-
-# 		# random starting points
-# 		self.metaStartFile = "%s.rand" % uniqueBasename
-# 		samplingRegionFactor = 0.25
-# 		samplingRegion = [[math.exp (math.log(bs[0]) + samplingRegionFactor * (math.log(bs[1]) - math.log(bs[0]))), math.exp (math.log(bs[0]) + (1-samplingRegionFactor) * (math.log(bs[1]) - math.log(bs[0])))] for bs in self.bounds]
-# 		logUniformStartingPointsFile (self.metaStartFile, self.metaNumStartPoints, samplingRegion)
-
-# 		# param file
-# 		writeMutRecoParameterFile (self.paramFile, theta (self.Nref, self.mu), rho (self.Nref, self.r))
-
-# 		# config file
-# 		# numLoci doesn't even matter, also, two alleles and one deme
-# 		writeConfigFile (self.configFile, 123456, 2, 1, [sampleSize])
-
-# 		# demography file
-# 		# firstTime = GenTimeToCoalTime (self.Nref, self.firsTimeInGen)
-# 		# lastTime = GenTimeToCoalTime (self.Nref, self.lastTimeInGen)
-# 		# themTimes = [math.exp(math.log(firstTime) + x/float(self.numEpochs-2) * (math.log(lastTime) - math.log(firstTime))) for x in range(self.numEpochs-1)]
-# 		self.epochTimes = logGrid (GenTimeToCoalTime (self.Nref, self.firstFixedTimeInGen), GenTimeToCoalTime (self.Nref, self.lastFixedTimeInGen), self.numEpochs-1)
-# 		writePieceWiseConstantDemographyFile (self.demoFile, self.numEpochs, self.epochTimes, 1)
-# 		writeOnePopExpRateRecentFile (self.rateFile, self.numEpochs)
+#   jarFile = "cleanDiCal2.jar"
 
 
-# 	def run (self):
+#   def __init__ (self, uniqueBasename, numCores, vcfFiles, refFiles, sampleSize, randomSeed):
+#       self.vcfFileList = vcfFiles
+#       self.refFileList = refFiles
+#       self.seeed = randomSeed
+#       self.numCores = numCores
 
-# 		if (self.numCores > 1):
-# 			parallelEmSteps = math.ceil (self.numCores / 2)
-# 			parallelString = " --parallel %d --metaParallelEmSteps %d" % (self.numCores, parallelEmSteps)
-# 		else:
-# 			parallelString = ""
+#       self.diCalOutputFileName = "%s.out" % uniqueBasename
+#       self.paramFile = "%s.param" % uniqueBasename
+#       self.demoFile = "%s.demo" % uniqueBasename
+#       self.rateFile = "%s.rates" % uniqueBasename
+#       self.configFile = "%s.config" % uniqueBasename
 
-# 		dicalCmd = ("java -Xmx70G -jar %s" +
-# 			" --paramFile %s" +
-# 			" --demoFile %s" +
-# 			" --ratesFile %s" +
-# 			" --configFile %s" +
-# 			" --vcfFile %s" +
-# 			" --vcfFilterPassString 'PASS'" +
-# 			" --vcfReferenceFile %s" +
-# 			" --seed %d" +
-# 			" --lociPerHmmStep %d" +
-# 			" --compositeLikelihood %s" +
-# 			" --metaStartFile %s" +
-# 			" --metaNumIterations %d" +
-# 			" --metaKeepBest %d" +
-# 			" --metaNumPoints %d" +
-# 			" --numberIterationsEM %d" +
-# 			" --numberIterationsMstep %d" +
-# 			" --printEmPath" +
-# 			# " --intervalType simple" +
-# 			" --intervalType logUniform" +
-# 			" --intervalParams '11,0.01,4'" +
-# 			" --bounds '%s'" +
-# 			"%s" +
-# 			" >%s") % (
-# 			self.jarFile,
-# 			self.paramFile,
-# 			self.demoFile,
-# 			self.rateFile,
-# 			self.configFile,
-# 			self.vcfFileList,
-# 			self.refFileList,
-# 			self.seeed,
-# 			self.numLociPerHmmStep,
-# 			self.cl,
-# 			self.metaStartFile,
-# 			self.metaNumIterations,
-# 			self.metaKeepBest,
-# 			self.metaNumPoints,
-# 			self.numEMiterations,
-# 			self.numIterationsMstep,
-# 			";".join([",".join([str(x) for x in y]) for y in self.bounds]),
-# 			parallelString,
-# 			self.diCalOutputFileName)
+#       # put together the bounds
+#       # one parameter per epoch
+#       self.bounds = []
+#       self.bounds.extend ([[PerGenPercentToExpRate (self.Nref, self.minPerGenGrowth), PerGenPercentToExpRate (self.Nref, self.maxPerGenGrowth)]])
+#       # self.bounds.extend ([[GenTimeToCoalTime (self.Nref, self.minBoundTimeInGen), GenTimeToCoalTime (self.Nref, self.maxBoundTimeInGen)]])
+#       # self.bounds.extend ([[GenTimeToCoalTime (self.Nref, 10*self.minBoundTimeInGen), GenTimeToCoalTime (self.Nref, 10*self.maxBoundTimeInGen)]])
+#       self.bounds.extend ([[DiploidSizeToCoalSize (self.Nref, self.minSize), DiploidSizeToCoalSize (self.Nref, self.maxSize)]]*self.numEpochs)
 
-# 		return dicalCmd
+#       # random starting points
+#       self.metaStartFile = "%s.rand" % uniqueBasename
+#       samplingRegionFactor = 0.25
+#       samplingRegion = [[math.exp (math.log(bs[0]) + samplingRegionFactor * (math.log(bs[1]) - math.log(bs[0]))), math.exp (math.log(bs[0]) + (1-samplingRegionFactor) * (math.log(bs[1]) - math.log(bs[0])))] for bs in self.bounds]
+#       logUniformStartingPointsFile (self.metaStartFile, self.metaNumStartPoints, samplingRegion)
+
+#       # param file
+#       writeMutRecoParameterFile (self.paramFile, theta (self.Nref, self.mu), rho (self.Nref, self.r))
+
+#       # config file
+#       # numLoci doesn't even matter, also, two alleles and one deme
+#       writeConfigFile (self.configFile, 123456, 2, 1, [sampleSize])
+
+#       # demography file
+#       # firstTime = GenTimeToCoalTime (self.Nref, self.firsTimeInGen)
+#       # lastTime = GenTimeToCoalTime (self.Nref, self.lastTimeInGen)
+#       # themTimes = [math.exp(math.log(firstTime) + x/float(self.numEpochs-2) * (math.log(lastTime) - math.log(firstTime))) for x in range(self.numEpochs-1)]
+#       self.epochTimes = logGrid (GenTimeToCoalTime (self.Nref, self.firstFixedTimeInGen), GenTimeToCoalTime (self.Nref, self.lastFixedTimeInGen), self.numEpochs-1)
+#       writePieceWiseConstantDemographyFile (self.demoFile, self.numEpochs, self.epochTimes, 1)
+#       writeOnePopExpRateRecentFile (self.rateFile, self.numEpochs)
 
 
-# 	def returnMLE (self):
-# 		# get the MLE
-# 		(mlePoint, maxLike) = returnMLE (self.diCalOutputFileName)
+#   def run (self):
 
-# 		# convert it to real scales
-# 		realMlePoint = ([ExpRateToPerGenPercent (self.Nref, mlePoint[0])] +
-# 			[CoalSizeToDiploidSize (self.Nref, x) for x in mlePoint[1:]])
+#       if (self.numCores > 1):
+#           parallelEmSteps = math.ceil (self.numCores / 2)
+#           parallelString = " --parallel %d --metaParallelEmSteps %d" % (self.numCores, parallelEmSteps)
+#       else:
+#           parallelString = ""
 
-# 		# and return it
-# 		return (realMlePoint, maxLike)
+#       dicalCmd = ("java -Xmx70G -jar %s" +
+#           " --paramFile %s" +
+#           " --demoFile %s" +
+#           " --ratesFile %s" +
+#           " --configFile %s" +
+#           " --vcfFile %s" +
+#           " --vcfFilterPassString 'PASS'" +
+#           " --vcfReferenceFile %s" +
+#           " --seed %d" +
+#           " --lociPerHmmStep %d" +
+#           " --compositeLikelihood %s" +
+#           " --metaStartFile %s" +
+#           " --metaNumIterations %d" +
+#           " --metaKeepBest %d" +
+#           " --metaNumPoints %d" +
+#           " --numberIterationsEM %d" +
+#           " --numberIterationsMstep %d" +
+#           " --printEmPath" +
+#           # " --intervalType simple" +
+#           " --intervalType logUniform" +
+#           " --intervalParams '11,0.01,4'" +
+#           " --bounds '%s'" +
+#           "%s" +
+#           " >%s") % (
+#           self.jarFile,
+#           self.paramFile,
+#           self.demoFile,
+#           self.rateFile,
+#           self.configFile,
+#           self.vcfFileList,
+#           self.refFileList,
+#           self.seeed,
+#           self.numLociPerHmmStep,
+#           self.cl,
+#           self.metaStartFile,
+#           self.metaNumIterations,
+#           self.metaKeepBest,
+#           self.metaNumPoints,
+#           self.numEMiterations,
+#           self.numIterationsMstep,
+#           ";".join([",".join([str(x) for x in y]) for y in self.bounds]),
+#           parallelString,
+#           self.diCalOutputFileName)
+
+#       return dicalCmd
+
+
+#   def returnMLE (self):
+#       # get the MLE
+#       (mlePoint, maxLike) = returnMLE (self.diCalOutputFileName)
+
+#       # convert it to real scales
+#       realMlePoint = ([ExpRateToPerGenPercent (self.Nref, mlePoint[0])] +
+#           [CoalSizeToDiploidSize (self.Nref, x) for x in mlePoint[1:]])
+
+#       # and return it
+#       return (realMlePoint, maxLike)
 
 
 class PieceWiseConstantAnalysis:
@@ -756,10 +756,11 @@ class CleanSplitAnalysis:
 
     # metaNumStartPoints = 40
     # metaNumPoints = 12
-    # metaKeepBest = 4
-    # metaNumIterations = 3
-    numEMiterations = 10
-    numIterationsMstep = 3
+    metaNumPoints = 1
+    metaKeepBest = 1
+    metaNumIterations = 3
+    numEMiterations = 3
+    numIterationsMstep = 4
 
     cl = "lol"
     # cl = "pcl"
@@ -771,14 +772,10 @@ class CleanSplitAnalysis:
     mu = 1.25e-8
     r = 1.25e-8
 
-    # numEpochs = 12
-    # firsTimeInGen = 200
-    # lastTimeInGen = 20000
-
     maxDivTimeInGen = 20000
-    minDivTimeInGen = 50
+    minDivTimeInGen = 100
     maxPopSize = 200000
-    minPopSize = 100
+    minPopSize = 500
 
     yearsPerGen = 25
 
@@ -801,18 +798,27 @@ class CleanSplitAnalysis:
                        [[DiploidSizeToCoalSize(self.Nref, self.minPopSize), DiploidSizeToCoalSize(self.Nref, self.maxPopSize)]] * 3)
 
         # random starting point(s)
-        # self.metaStartFile = "%s.rand" % uniqueBasename
-        samplingRegionFactor = 0.25
-        samplingRegion = [[math.exp(math.log(bs[0]) + samplingRegionFactor * (math.log(bs[1]) - math.log(bs[0]))), math.exp(
-            math.log(bs[0]) + (1 - samplingRegionFactor) * (math.log(bs[1]) - math.log(bs[0])))] for bs in self.bounds]
-        # logUniformStartingPointsFile (self.metaStartFile, self.metaNumStartPoints, samplingRegion)
-        logBounds = [[math.log(b[0]), math.log(b[1])] for b in samplingRegion]
-        # and get a point
-        logPoint = [random.uniform(b[0], b[1]) for b in logBounds]
-        point = [math.exp(x) for x in logPoint]
-        # point = [1]*self.numEpochs
-        self.startPointString = "'" + \
-            ",".join([("%.8f" % x) for x in point]) + "'"
+        self.metaStartFile = "%s.rand" % uniqueBasename
+        ofs = open (self.metaStartFile, "w")
+        # give start points directly
+        ofs.write ("\t".join([str(x) for x in [0.02, 1.0, 1.0, 1.0]]) + "\n")
+        ofs.write ("\t".join([str(x) for x in [0.1, 1.0, 1.0, 1.0]]) + "\n")
+        ofs.write ("\t".join([str(x) for x in [0.5, 1.0, 1.0, 1.0]]) + "\n")
+        ofs.close ()
+
+        # samplingRegionFactor = 0.25
+        # samplingRegion = [[math.exp(math.log(bs[0]) + samplingRegionFactor * (math.log(bs[1]) - math.log(bs[0]))), math.exp(
+        #     math.log(bs[0]) + (1 - samplingRegionFactor) * (math.log(bs[1]) - math.log(bs[0])))] for bs in self.bounds]
+        # # logUniformStartingPointsFile (self.metaStartFile, self.metaNumStartPoints, samplingRegion)
+        # logBounds = [[math.log(b[0]), math.log(b[1])] for b in samplingRegion]
+        # # and get a point
+        # logPoint = [random.uniform(b[0], b[1]) for b in logBounds]
+        # point = [math.exp(x) for x in logPoint]
+        # no random staring for now
+        # at the moment just a point (which is the true value for the simulations)
+        # point = [0.1,1.0,1.0,1.0]
+        # point = [0.1,0.5,0.5,1.0]
+        # self.startPointString = ",".join([("%.8f" % x) for x in point])
 
         # param file
         writeMutRecoParameterFile(self.paramFile, theta(
@@ -820,68 +826,64 @@ class CleanSplitAnalysis:
 
         # config file
         # numLoci doesn't even matter, also, two alleles and two deme
-        writeConfigFile(self.configFile, 123456, 2, 2, sampleSizes)
+        writeConfigFile(self.configFile, 123456, 2, 2, sampleSizes, [0,0,0])
 
         # demography file for clean split
         writeIsolationMigrationDemographyFile(self.demoFile, False, True, [
                                               "?%d" % x for x in range(4)])
 
     def run(self):
-
+        dicalCmd = {
+            "paramFile": self.paramFile,
+            "demoFile": self.demoFile,
+            "configFile": self.configFile,
+            "vcfFile": self.vcfFileList,
+            "vcfFilterPassString": 'PASS',
+            "vcfReferenceFile": self.refFileList,
+            "seed": self.seeed,
+            "lociPerHmmStep": self.numLociPerHmmStep,
+            "compositeLikelihood": self.cl,
+            # "startPoint": self.startPointString,
+            "metaStartFile": self.metaStartFile,
+            "metaNumIterations": self.metaNumIterations,
+            "metaKeepBest": str(self.metaKeepBest),
+            "metaNumPoints": str(self.metaNumPoints),
+            "metaParallelEmSteps": str(1),
+            "numberIterationsEM": self.numEMiterations,
+            "numberIterationsMstep": self.numIterationsMstep,
+            "nmFraction": 0.3,
+            # "disableCoordinateWiseMStep": True,
+            "printEmPath": True,
+            # "intervalType": "simple",
+            "intervalType": "logUniform",
+            "intervalParams": "11,0.01,4",
+            "bounds": ";".join([",".join([str(x) for x in y]) for y in self.bounds])
+        }
+        # see about parallelism
         if (self.numCores > 1):
-            parallelEmSteps = min(math.ceil(self.numCores / 2), 2)
-            # parallelString = " --parallel %d --metaParallelEmSteps %d" % (self.numCores, parallelEmSteps)
-            parallelString = " --parallel %d" % (self.numCores)
-        else:
-            parallelString = ""
+            dicalCmd["parallel"] = self.numCores
 
-        dicalCmd = ("java -Xmx15G -jar %s" +
-                    " --paramFile %s" +
-                    " --demoFile %s" +
-                    " --configFile %s" +
-                    " --vcfFile %s" +
-                    " --vcfFilterPassString 'PASS'" +
-                    " --vcfReferenceFile %s" +
-                    " --seed %d" +
-                    " --lociPerHmmStep %d" +
-                    " --compositeLikelihood %s" +
-                    " --startPoint %s" +
-                    # " --metaStartFile %s" +
-                    # " --metaNumIterations %d" +
-                    # " --metaKeepBest %d" +
-                    # " --metaNumPoints %d" +
-                    " --numberIterationsEM %d" +
-                    # " --disableCoordinateWiseMStep" +
-                    " --numberIterationsMstep %d" +
-                    " --printEmPath" +
-                    # " --intervalType simple" +
-                    # " --cakeStyle end" +
-                    " --intervalType logUniform" +
-                    " --intervalParams '11,0.01,4'" +
-                    " --bounds '%s'" +
-                    "%s" +
-                    " >%s") % (
-            self.jarFile,
-            self.paramFile,
-            self.demoFile,
-            self.configFile,
-            self.vcfFileList,
-            self.refFileList,
-            self.seeed,
-            self.numLociPerHmmStep,
-            self.cl,
-            self.startPointString,
-            # self.metaStartFile,
-            # self.metaNumIterations,
-            # self.metaKeepBest,
-            # self.metaNumPoints,
-            self.numEMiterations,
-            self.numIterationsMstep,
-            ";".join([",".join([str(x) for x in y]) for y in self.bounds]),
-            parallelString,
-            self.diCalOutputFileName)
-
+        # and return stuff
         return dicalCmd
+
+
+    def realCmdLine(self):
+        # get the dict
+        cmdDict = self.run()
+        filteredDict = {}
+        for (k,v) in cmdDict.items():
+            if isinstance (v, str) and ("," in v) and (v[0] != "'"):
+                v = "'" + v + "'"
+            filteredDict[k] = v
+
+        # put the command line together
+        jarCmd = "java -Xmx15G -jar %s " % self.jarFile
+        cmdLineParameters = " ".join(["--%s %s" % (k, "" if v == True else v) for (k,v) in filteredDict.items()])
+        outFileCmd = " >%s" % self.diCalOutputFileName
+
+        cmd = jarCmd + cmdLineParameters + outFileCmd
+        return cmd
+
 
     def returnMLE(self):
         # get the MLE
@@ -897,14 +899,28 @@ class CleanSplitAnalysis:
         return (realMlePoint, maxLike)
 
 
+# class IsolationMigrationAnalysis:
+#     maxMigRate = 0.0005
+#     minMigRate = 0.0000005
+#         # put together the bounds
+#         # first time, two sizes, migrate, another size
+#         self.bounds = ([[GenTimeToCoalTime(self.Nref, self.minDivTimeInGen), GenTimeToCoalTime(self.Nref, self.maxDivTimeInGen)]] +
+#                        [[DiploidSizeToCoalSize(self.Nref, self.minPopSize), DiploidSizeToCoalSize(self.Nref, self.maxPopSize)]] * 2 +
+#                        [[PerGenMigToMigRate(self.Nref, self.minMigRate), PerGenMigToMigRate(self.Nref, self.maxMigRate)]] +
+#                        [[DiploidSizeToCoalSize(self.Nref, self.minPopSize), DiploidSizeToCoalSize(self.Nref, self.maxPopSize)]])
+
+#         # demography file for clean split
+#         writeIsolationMigrationDemographyFile(self.demoFile, True, False, [
+#                                               "?%d" % x for x in range(5)])
 class IsolationMigrationAnalysis:
 
     # metaNumStartPoints = 40
     # metaNumPoints = 12
-    # metaKeepBest = 4
-    # metaNumIterations = 3
-    numEMiterations = 10
-    numIterationsMstep = 3
+    metaNumPoints = 1
+    metaKeepBest = 1
+    metaNumIterations = 3
+    numEMiterations = 4
+    numIterationsMstep = 10
 
     cl = "lol"
     # cl = "pcl"
@@ -916,16 +932,12 @@ class IsolationMigrationAnalysis:
     mu = 1.25e-8
     r = 1.25e-8
 
-    # numEpochs = 12
-    # firsTimeInGen = 200
-    # lastTimeInGen = 20000
-
     maxDivTimeInGen = 20000
-    minDivTimeInGen = 50
-    maxMigRate = 0.0005
+    minDivTimeInGen = 100
+    maxMigRate = 0.005
     minMigRate = 0.0000005
     maxPopSize = 200000
-    minPopSize = 100
+    minPopSize = 500
 
     yearsPerGen = 25
 
@@ -943,25 +955,38 @@ class IsolationMigrationAnalysis:
         self.configFile = "%s.config" % uniqueBasename
 
         # put together the bounds
-        # first time, two sizes, migrate, another size
+        # # first time, then three sizes
+        # self.bounds = ([[GenTimeToCoalTime(self.Nref, self.minDivTimeInGen), GenTimeToCoalTime(self.Nref, self.maxDivTimeInGen)]] +
+        #                [[DiploidSizeToCoalSize(self.Nref, self.minPopSize), DiploidSizeToCoalSize(self.Nref, self.maxPopSize)]] * 3)
         self.bounds = ([[GenTimeToCoalTime(self.Nref, self.minDivTimeInGen), GenTimeToCoalTime(self.Nref, self.maxDivTimeInGen)]] +
                        [[DiploidSizeToCoalSize(self.Nref, self.minPopSize), DiploidSizeToCoalSize(self.Nref, self.maxPopSize)]] * 2 +
                        [[PerGenMigToMigRate(self.Nref, self.minMigRate), PerGenMigToMigRate(self.Nref, self.maxMigRate)]] +
                        [[DiploidSizeToCoalSize(self.Nref, self.minPopSize), DiploidSizeToCoalSize(self.Nref, self.maxPopSize)]])
 
+
         # random starting point(s)
-        # self.metaStartFile = "%s.rand" % uniqueBasename
-        samplingRegionFactor = 0.25
-        samplingRegion = [[math.exp(math.log(bs[0]) + samplingRegionFactor * (math.log(bs[1]) - math.log(bs[0]))), math.exp(
-            math.log(bs[0]) + (1 - samplingRegionFactor) * (math.log(bs[1]) - math.log(bs[0])))] for bs in self.bounds]
-        # logUniformStartingPointsFile (self.metaStartFile, self.metaNumStartPoints, samplingRegion)
-        logBounds = [[math.log(b[0]), math.log(b[1])] for b in samplingRegion]
-        # and get a point
-        logPoint = [random.uniform(b[0], b[1]) for b in logBounds]
-        point = [math.exp(x) for x in logPoint]
-        # point = [1]*self.numEpochs
-        self.startPointString = "'" + \
-            ",".join([("%.8f" % x) for x in point]) + "'"
+        self.metaStartFile = "%s.rand" % uniqueBasename
+        ofs = open (self.metaStartFile, "w")
+        # give start points directly
+        ofs.write ("\t".join([str(x) for x in [0.05, 1.0, 1.0, 0.1, 1.0]]) + "\n")
+        ofs.write ("\t".join([str(x) for x in [0.25, 1.0, 1.0, 0.1, 1.0]]) + "\n")
+        ofs.write ("\t".join([str(x) for x in [0.05, 1.0, 1.0, 10.0, 1.0]]) + "\n")
+        ofs.write ("\t".join([str(x) for x in [0.25, 1.0, 1.0, 10.0, 1.0]]) + "\n")
+        ofs.close ()
+
+        # samplingRegionFactor = 0.25
+        # samplingRegion = [[math.exp(math.log(bs[0]) + samplingRegionFactor * (math.log(bs[1]) - math.log(bs[0]))), math.exp(
+        #     math.log(bs[0]) + (1 - samplingRegionFactor) * (math.log(bs[1]) - math.log(bs[0])))] for bs in self.bounds]
+        # # logUniformStartingPointsFile (self.metaStartFile, self.metaNumStartPoints, samplingRegion)
+        # logBounds = [[math.log(b[0]), math.log(b[1])] for b in samplingRegion]
+        # # and get a point
+        # logPoint = [random.uniform(b[0], b[1]) for b in logBounds]
+        # point = [math.exp(x) for x in logPoint]
+        # no random staring for now
+        # at the moment just a point (which is the true value for the simulations)
+        # point = [0.1,1.0,1.0,1.0]
+        # point = [0.1,0.5,0.5,1.0]
+        # self.startPointString = ",".join([("%.8f" % x) for x in point])
 
         # param file
         writeMutRecoParameterFile(self.paramFile, theta(
@@ -969,68 +994,67 @@ class IsolationMigrationAnalysis:
 
         # config file
         # numLoci doesn't even matter, also, two alleles and two deme
-        writeConfigFile(self.configFile, 123456, 2, 2, sampleSizes)
+        writeConfigFile(self.configFile, 123456, 2, 2, sampleSizes, [0,0,0])
 
         # demography file for clean split
+        # writeIsolationMigrationDemographyFile(self.demoFile, False, True, [
+        #                                       "?%d" % x for x in range(4)])
         writeIsolationMigrationDemographyFile(self.demoFile, True, False, [
-                                              "?%d" % x for x in range(5)])
+                                      "?%d" % x for x in range(5)])
+
 
     def run(self):
-
+        dicalCmd = {
+            "paramFile": self.paramFile,
+            "demoFile": self.demoFile,
+            "configFile": self.configFile,
+            "vcfFile": self.vcfFileList,
+            "vcfFilterPassString": 'PASS',
+            "vcfReferenceFile": self.refFileList,
+            "seed": self.seeed,
+            "lociPerHmmStep": self.numLociPerHmmStep,
+            "compositeLikelihood": self.cl,
+            # "startPoint": self.startPointString,
+            "metaStartFile": self.metaStartFile,
+            "metaNumIterations": self.metaNumIterations,
+            "metaKeepBest": str(self.metaKeepBest),
+            "metaNumPoints": str(self.metaNumPoints),
+            "metaParallelEmSteps": str(1),
+            "numberIterationsEM": self.numEMiterations,
+            "numberIterationsMstep": self.numIterationsMstep,
+            # "nmFraction": 0.3,
+            "disableCoordinateWiseMStep": True,
+            "printEmPath": True,
+            # "intervalType": "simple",
+            "intervalType": "logUniform",
+            "intervalParams": "11,0.01,4",
+            "bounds": ";".join([",".join([str(x) for x in y]) for y in self.bounds])
+        }
+        # see about parallelism
         if (self.numCores > 1):
-            parallelEmSteps = min(math.ceil(self.numCores / 2), 2)
-            # parallelString = " --parallel %d --metaParallelEmSteps %d" % (self.numCores, parallelEmSteps)
-            parallelString = " --parallel %d" % (self.numCores)
-        else:
-            parallelString = ""
+            dicalCmd["parallel"] = self.numCores
 
-        dicalCmd = ("java -Xmx15G -jar %s" +
-                    " --paramFile %s" +
-                    " --demoFile %s" +
-                    " --configFile %s" +
-                    " --vcfFile %s" +
-                    " --vcfFilterPassString 'PASS'" +
-                    " --vcfReferenceFile %s" +
-                    " --seed %d" +
-                    " --lociPerHmmStep %d" +
-                    " --compositeLikelihood %s" +
-                    " --startPoint %s" +
-                    # " --metaStartFile %s" +
-                    # " --metaNumIterations %d" +
-                    # " --metaKeepBest %d" +
-                    # " --metaNumPoints %d" +
-                    " --numberIterationsEM %d" +
-                    # " --disableCoordinateWiseMStep" +
-                    " --numberIterationsMstep %d" +
-                    " --printEmPath" +
-                    # " --intervalType simple" +
-                    # " --cakeStyle end" +
-                    " --intervalType logUniform" +
-                    " --intervalParams '11,0.01,4'" +
-                    " --bounds '%s'" +
-                    "%s" +
-                    " >%s") % (
-            self.jarFile,
-            self.paramFile,
-            self.demoFile,
-            self.configFile,
-            self.vcfFileList,
-            self.refFileList,
-            self.seeed,
-            self.numLociPerHmmStep,
-            self.cl,
-            self.startPointString,
-            # self.metaStartFile,
-            # self.metaNumIterations,
-            # self.metaKeepBest,
-            # self.metaNumPoints,
-            self.numEMiterations,
-            self.numIterationsMstep,
-            ";".join([",".join([str(x) for x in y]) for y in self.bounds]),
-            parallelString,
-            self.diCalOutputFileName)
-
+        # and return stuff
         return dicalCmd
+
+
+    def realCmdLine(self):
+        # get the dict
+        cmdDict = self.run()
+        filteredDict = {}
+        for (k,v) in cmdDict.items():
+            if isinstance (v, str) and ("," in v) and (v[0] != "'"):
+                v = "'" + v + "'"
+            filteredDict[k] = v
+
+        # put the command line together
+        jarCmd = "java -Xmx15G -jar %s " % self.jarFile
+        cmdLineParameters = " ".join(["--%s %s" % (k, "" if v == True else v) for (k,v) in filteredDict.items()])
+        outFileCmd = " >%s" % self.diCalOutputFileName
+
+        cmd = jarCmd + cmdLineParameters + outFileCmd
+        return cmd
+
 
     def returnMLE(self):
         # get the MLE
@@ -1046,156 +1070,157 @@ class IsolationMigrationAnalysis:
         return (realMlePoint, maxLike)
 
 
-class MigStopAnalysis:
 
-    # metaNumStartPoints = 40
-    # metaNumPoints = 12
-    # metaKeepBest = 4
-    # metaNumIterations = 3
-    numEMiterations = 10
-    numIterationsMstep = 3
+# class MigStopAnalysis:
 
-    cl = "lol"
-    # cl = "pcl"
+#     # metaNumStartPoints = 40
+#     # metaNumPoints = 12
+#     # metaKeepBest = 4
+#     # metaNumIterations = 3
+#     numEMiterations = 10
+#     numIterationsMstep = 3
 
-    numLociPerHmmStep = 1000
-    # numLociPerHmmStep = 500
+#     cl = "lol"
+#     # cl = "pcl"
 
-    Nref = 10000
-    mu = 1.25e-8
-    r = 1.25e-8
+#     numLociPerHmmStep = 1000
+#     # numLociPerHmmStep = 500
 
-    # numEpochs = 12
-    # firsTimeInGen = 200
-    # lastTimeInGen = 20000
+#     Nref = 10000
+#     mu = 1.25e-8
+#     r = 1.25e-8
 
-    maxDivTimeInGen = 20000
-    minDivTimeInGen = 500
-    maxMigStopTimeInGen = 2000
-    minMigStopTimeInGen = 100
-    maxMigRate = 0.0005
-    minMigRate = 0.0000005
-    maxPopSize = 200000
-    minPopSize = 100
+#     # numEpochs = 12
+#     # firsTimeInGen = 200
+#     # lastTimeInGen = 20000
 
-    yearsPerGen = 25
+#     maxDivTimeInGen = 20000
+#     minDivTimeInGen = 500
+#     maxMigStopTimeInGen = 2000
+#     minMigStopTimeInGen = 100
+#     maxMigRate = 0.0005
+#     minMigRate = 0.0000005
+#     maxPopSize = 200000
+#     minPopSize = 100
 
-    jarFile = "cleanDiCal2.jar"
+#     yearsPerGen = 25
 
-    def __init__(self, uniqueBasename, numCores, vcfFiles, refFiles, sampleSizes, randomSeed):
-        self.vcfFileList = vcfFiles
-        self.refFileList = refFiles
-        self.seeed = randomSeed
-        self.numCores = numCores
+#     jarFile = "cleanDiCal2.jar"
 
-        self.diCalOutputFileName = "%s.dical_out" % uniqueBasename
-        self.paramFile = "%s.param" % uniqueBasename
-        self.demoFile = "%s.demo" % uniqueBasename
-        self.configFile = "%s.config" % uniqueBasename
+#     def __init__(self, uniqueBasename, numCores, vcfFiles, refFiles, sampleSizes, randomSeed):
+#         self.vcfFileList = vcfFiles
+#         self.refFileList = refFiles
+#         self.seeed = randomSeed
+#         self.numCores = numCores
 
-        # put together the bounds
-        # two time, two sizes, migrate, another size
-        self.bounds = ([[GenTimeToCoalTime(self.Nref, self.minDivTimeInGen), GenTimeToCoalTime(self.Nref, self.maxDivTimeInGen)]] +
-                       [[GenTimeToCoalTime(self.Nref, self.minMigStopTimeInGen), GenTimeToCoalTime(self.Nref, self.maxMigStopTimeInGen)]] +
-                       [[DiploidSizeToCoalSize(self.Nref, self.minPopSize), DiploidSizeToCoalSize(self.Nref, self.maxPopSize)]] * 2 +
-                       [[PerGenMigToMigRate(self.Nref, self.minMigRate), PerGenMigToMigRate(self.Nref, self.maxMigRate)]] +
-                       [[DiploidSizeToCoalSize(self.Nref, self.minPopSize), DiploidSizeToCoalSize(self.Nref, self.maxPopSize)]])
+#         self.diCalOutputFileName = "%s.dical_out" % uniqueBasename
+#         self.paramFile = "%s.param" % uniqueBasename
+#         self.demoFile = "%s.demo" % uniqueBasename
+#         self.configFile = "%s.config" % uniqueBasename
 
-        # random starting point(s)
-        # self.metaStartFile = "%s.rand" % uniqueBasename
-        samplingRegionFactor = 0.25
-        samplingRegion = [[math.exp(math.log(bs[0]) + samplingRegionFactor * (math.log(bs[1]) - math.log(bs[0]))), math.exp(
-            math.log(bs[0]) + (1 - samplingRegionFactor) * (math.log(bs[1]) - math.log(bs[0])))] for bs in self.bounds]
-        # logUniformStartingPointsFile (self.metaStartFile, self.metaNumStartPoints, samplingRegion)
-        logBounds = [[math.log(b[0]), math.log(b[1])] for b in samplingRegion]
-        # and get a point
-        logPoint = [random.uniform(b[0], b[1]) for b in logBounds]
-        point = [math.exp(x) for x in logPoint]
-        # point = [1]*self.numEpochs
-        self.startPointString = "'" + \
-            ",".join([("%.8f" % x) for x in point]) + "'"
+#         # put together the bounds
+#         # two time, two sizes, migrate, another size
+#         self.bounds = ([[GenTimeToCoalTime(self.Nref, self.minDivTimeInGen), GenTimeToCoalTime(self.Nref, self.maxDivTimeInGen)]] +
+#                        [[GenTimeToCoalTime(self.Nref, self.minMigStopTimeInGen), GenTimeToCoalTime(self.Nref, self.maxMigStopTimeInGen)]] +
+#                        [[DiploidSizeToCoalSize(self.Nref, self.minPopSize), DiploidSizeToCoalSize(self.Nref, self.maxPopSize)]] * 2 +
+#                        [[PerGenMigToMigRate(self.Nref, self.minMigRate), PerGenMigToMigRate(self.Nref, self.maxMigRate)]] +
+#                        [[DiploidSizeToCoalSize(self.Nref, self.minPopSize), DiploidSizeToCoalSize(self.Nref, self.maxPopSize)]])
 
-        # param file
-        writeMutRecoParameterFile(self.paramFile, theta(
-            self.Nref, self.mu), rho(self.Nref, self.r))
+#         # random starting point(s)
+#         # self.metaStartFile = "%s.rand" % uniqueBasename
+#         samplingRegionFactor = 0.25
+#         samplingRegion = [[math.exp(math.log(bs[0]) + samplingRegionFactor * (math.log(bs[1]) - math.log(bs[0]))), math.exp(
+#             math.log(bs[0]) + (1 - samplingRegionFactor) * (math.log(bs[1]) - math.log(bs[0])))] for bs in self.bounds]
+#         # logUniformStartingPointsFile (self.metaStartFile, self.metaNumStartPoints, samplingRegion)
+#         logBounds = [[math.log(b[0]), math.log(b[1])] for b in samplingRegion]
+#         # and get a point
+#         logPoint = [random.uniform(b[0], b[1]) for b in logBounds]
+#         point = [math.exp(x) for x in logPoint]
+#         # point = [1]*self.numEpochs
+#         self.startPointString = "'" + \
+#             ",".join([("%.8f" % x) for x in point]) + "'"
 
-        # config file
-        # numLoci doesn't even matter, also, two alleles and two deme
-        writeConfigFile(self.configFile, 123456, 2, 2, sampleSizes)
+#         # param file
+#         writeMutRecoParameterFile(self.paramFile, theta(
+#             self.Nref, self.mu), rho(self.Nref, self.r))
 
-        # demography file for clean split
-        writeIsolationMigrationDemographyFile(self.demoFile, True, True, [
-                                              "?%d" % x for x in range(6)])
+#         # config file
+#         # numLoci doesn't even matter, also, two alleles and two deme
+#         writeConfigFile(self.configFile, 123456, 2, 2, sampleSizes)
 
-    def run(self):
+#         # demography file for clean split
+#         writeIsolationMigrationDemographyFile(self.demoFile, True, True, [
+#                                               "?%d" % x for x in range(6)])
 
-        if (self.numCores > 1):
-            parallelEmSteps = min(math.ceil(self.numCores / 2), 2)
-            # parallelString = " --parallel %d --metaParallelEmSteps %d" % (self.numCores, parallelEmSteps)
-            parallelString = " --parallel %d" % (self.numCores)
-        else:
-            parallelString = ""
+#     def run(self):
 
-        dicalCmd = ("java -Xmx15G -jar %s" +
-                    " --paramFile %s" +
-                    " --demoFile %s" +
-                    " --configFile %s" +
-                    " --vcfFile %s" +
-                    " --vcfFilterPassString 'PASS'" +
-                    " --vcfReferenceFile %s" +
-                    " --seed %d" +
-                    " --lociPerHmmStep %d" +
-                    " --compositeLikelihood %s" +
-                    " --startPoint %s" +
-                    # " --metaStartFile %s" +
-                    # " --metaNumIterations %d" +
-                    # " --metaKeepBest %d" +
-                    # " --metaNumPoints %d" +
-                    " --numberIterationsEM %d" +
-                    # " --disableCoordinateWiseMStep" +
-                    " --numberIterationsMstep %d" +
-                    " --printEmPath" +
-                    # " --intervalType simple" +
-                    # " --cakeStyle end" +
-                    " --intervalType logUniform" +
-                    " --intervalParams '11,0.01,4'" +
-                    " --bounds '%s'" +
-                    "%s" +
-                    " >%s") % (
-            self.jarFile,
-            self.paramFile,
-            self.demoFile,
-            self.configFile,
-            self.vcfFileList,
-            self.refFileList,
-            self.seeed,
-            self.numLociPerHmmStep,
-            self.cl,
-            self.startPointString,
-            # self.metaStartFile,
-            # self.metaNumIterations,
-            # self.metaKeepBest,
-            # self.metaNumPoints,
-            self.numEMiterations,
-            self.numIterationsMstep,
-            ";".join([",".join([str(x) for x in y]) for y in self.bounds]),
-            parallelString,
-            self.diCalOutputFileName)
+#         if (self.numCores > 1):
+#             parallelEmSteps = min(math.ceil(self.numCores / 2), 2)
+#             # parallelString = " --parallel %d --metaParallelEmSteps %d" % (self.numCores, parallelEmSteps)
+#             parallelString = " --parallel %d" % (self.numCores)
+#         else:
+#             parallelString = ""
 
-        return dicalCmd
+#         dicalCmd = ("java -Xmx15G -jar %s" +
+#                     " --paramFile %s" +
+#                     " --demoFile %s" +
+#                     " --configFile %s" +
+#                     " --vcfFile %s" +
+#                     " --vcfFilterPassString 'PASS'" +
+#                     " --vcfReferenceFile %s" +
+#                     " --seed %d" +
+#                     " --lociPerHmmStep %d" +
+#                     " --compositeLikelihood %s" +
+#                     " --startPoint %s" +
+#                     # " --metaStartFile %s" +
+#                     # " --metaNumIterations %d" +
+#                     # " --metaKeepBest %d" +
+#                     # " --metaNumPoints %d" +
+#                     " --numberIterationsEM %d" +
+#                     # " --disableCoordinateWiseMStep" +
+#                     " --numberIterationsMstep %d" +
+#                     " --printEmPath" +
+#                     # " --intervalType simple" +
+#                     # " --cakeStyle end" +
+#                     " --intervalType logUniform" +
+#                     " --intervalParams '11,0.01,4'" +
+#                     " --bounds '%s'" +
+#                     "%s" +
+#                     " >%s") % (
+#             self.jarFile,
+#             self.paramFile,
+#             self.demoFile,
+#             self.configFile,
+#             self.vcfFileList,
+#             self.refFileList,
+#             self.seeed,
+#             self.numLociPerHmmStep,
+#             self.cl,
+#             self.startPointString,
+#             # self.metaStartFile,
+#             # self.metaNumIterations,
+#             # self.metaKeepBest,
+#             # self.metaNumPoints,
+#             self.numEMiterations,
+#             self.numIterationsMstep,
+#             ";".join([",".join([str(x) for x in y]) for y in self.bounds]),
+#             parallelString,
+#             self.diCalOutputFileName)
 
-    def returnMLE(self):
-        # get the MLE
-        (mlePoint, maxLike) = returnMLE(self.diCalOutputFileName)
+#         return dicalCmd
 
-        # convert it to real scales
-        assert (len(mlePoint) == 4)
-        # one time and 3 sizes
-        realMlePoint = ([CoalTimeToGenTime(self.Nref, mlePoint[0])] +
-                        [CoalSizeToDiploidSize(self.Nref, x) for x in mlePoint[1:-1]])
+#     def returnMLE(self):
+#         # get the MLE
+#         (mlePoint, maxLike) = returnMLE(self.diCalOutputFileName)
 
-        # and return it
-        return (realMlePoint, maxLike)
+#         # convert it to real scales
+#         assert (len(mlePoint) == 4)
+#         # one time and 3 sizes
+#         realMlePoint = ([CoalTimeToGenTime(self.Nref, mlePoint[0])] +
+#                         [CoalSizeToDiploidSize(self.Nref, x) for x in mlePoint[1:-1]])
+
+#         # and return it
+#         return (realMlePoint, maxLike)
 
 
 def realAnalysis():
@@ -1497,14 +1522,21 @@ def multiPopAnalysis():
 
     # -------------------- clean split --------------------
     # set the directory
-    dirExtension = "projects/coalHMMopionPiece/analysis/test/mig"
+    # dirExtension = "projects/coalHMMopionPiece/analysis/test/cleanSplit"
+    dirExtension = "projects/coalHMMopionPiece/analysis/test/isolationMigration"
     daDir = os.path.join(laptopBase, dirExtension)
     # os.makedirs (daDir)
     os.chdir(daDir)
 
-    uniqueBasename = "migfishMigStop"
+    # uniqueBasename = "migfishCleanSplitThree"
+    # uniqueBasename = "migfishCleanSplitMultiNM03"
+    uniqueBasename = "migfishNoCoord"
+
+
+    # dataDir = os.path.join(
+    #     realBase, "projects/coalHMMopionPiece/data/test/cleanSplit")
     dataDir = os.path.join(
-        realBase, "projects/coalHMMopionPiece/data/test/migStop")
+        realBase, "projects/coalHMMopionPiece/data/test/isolationMigration")
 
     numContigs = 10
 
@@ -1522,43 +1554,182 @@ def multiPopAnalysis():
 
     # try to put some analysis together
     # arguments: <fileBasename> <numCorse> <list_of_vcf> <list_of_refFiles> <sample_size> <seed>
-    # analysis = CleanSplitAnalysis (uniqueBasename, numCores, vcfFiles, refFiles, [4, 4], random.randint (0, 99999999))
-    # analysis = IsolationMigrationAnalysis (uniqueBasename, numCores, vcfFiles, refFiles, [4, 4], random.randint (0, 99999999))
-    analysis = MigStopAnalysis(uniqueBasename, numCores, vcfFiles, refFiles, [
+    # analysis = CleanSplitAnalysis(uniqueBasename, numCores, vcfFiles, refFiles, [
+    #                            4, 4], random.randint(0, 99999999))
+    analysis = IsolationMigrationAnalysis(uniqueBasename, numCores, vcfFiles, refFiles, [
                                4, 4], random.randint(0, 99999999))
     print("---------- COMMAND ----------")
-    cmd = analysis.run()
+    # cmd = analysis.run()
+    cmd = analysis.realCmdLine ()
     print(cmd)
-    # ofs = open ("%s.sh" % uniqueBasename, "w")
-    # ofs.write("#!/bin/bash\n")
-    # ofs.write("#PBS -N %s\n" % uniqueBasename)
-    # ofs.write("#PBS -S /bin/bash\n")
-    # ofs.write("#PBS -l walltime=10:00:00\n")
-    # ofs.write("#PBS -l nodes=1:ppn=%d\n" % numCores)
-    # ofs.write("#PBS -l mem=16gb\n")
-    # ofs.write("#PBS -o %s\n" % os.path.join (realBase, dirExtension, "%s.out" % uniqueBasename))
-    # ofs.write("#PBS -e %s\n" % os.path.join (realBase, dirExtension, "%s.err" % uniqueBasename))
-    # # try to change the workdir
-    # ofs.write("cd $PBS_O_WORKDIR\n")
-    # ofs.write (cmd + "\n")
-    # ofs.close()
-    # print (analysis.run())
+    ofs = open ("%s.sh" % uniqueBasename, "w")
+    ofs.write("#!/bin/bash\n")
+    ofs.write("#PBS -N %s\n" % uniqueBasename)
+    ofs.write("#PBS -S /bin/bash\n")
+    ofs.write("#PBS -l walltime=10:00:00\n")
+    ofs.write("#PBS -l nodes=1:ppn=%d\n" % numCores)
+    ofs.write("#PBS -l mem=16gb\n")
+    ofs.write("#PBS -o %s\n" % os.path.join (realBase, dirExtension, "%s.out" % uniqueBasename))
+    ofs.write("#PBS -e %s\n" % os.path.join (realBase, dirExtension, "%s.err" % uniqueBasename))
+    # try to change the workdir
+    ofs.write("cd $PBS_O_WORKDIR\n")
+    ofs.write (cmd + "\n")
+    ofs.close()
     print("---------- MLE ----------")
     # print (analysis.returnMLE())
     # analysis.writeResultsCSV ("%s.csv" % uniqueBasename)
+
+
+def multiDataSetAnalysis():
+    laptopBase = "/Users/steinrue/labsharecri/"
+    realBase = "/home/steinrue/labshare"
+
+    # -------------------- clean split --------------------
+    # set the directory
+    # dirExtension = "projects/coalHMMopionPiece/analysis/test/cleanSplit"
+    # dirExtension = "projects/coalHMMopionPiece/analysis/test/cleanSplit/tenDataSets"
+    dirExtension = "projects/coalHMMopionPiece/analysis/test/isolationMigration/tenDataSets"
+    daDir = os.path.join(laptopBase, dirExtension)
+    os.makedirs (daDir)
+    os.chdir(daDir)
+
+    # uniqueBasename = "migfishCleanSplitThree"
+    # uniqueBasename = "migfishCleanSplitMultiNM03"
+    # uniqueBasename = "migfishIsolationMigrationMultiNM03"
+    # uniqueBasenamePrefix = "multiCleanSplit"
+    uniqueBasenamePrefix = "multiIsolationMigration"
+
+    numCores = 24
+
+    # dataDir = os.path.join(
+    #     realBase, "projects/coalHMMopionPiece/data/test/cleanSplit")
+    dataDir = os.path.join(
+        realBase, "projects/coalHMMopionPiece/data/test/isolationMigration")
+
+    numDataSets = 10
+    numContigs = 10
+
+    # we have a reference
+    refFilename = os.path.join(dataDir, "output.ref")
+    refList = [refFilename] * numContigs
+    refFiles = "'" + ",".join(refList) + "'"
+
+    metafs = open ("meta.sh", 'w')
+
+    for d in range(numDataSets):
+
+        uniqueBasename = uniqueBasenamePrefix + "_%d" % d
+
+        vcfOffset = d * numContigs
+        vcfList = []
+        for c in range(numContigs):
+            vcfList.append(os.path.join(dataDir, "contig.%d.vcf" % (c + vcfOffset)))
+        vcfFiles = "'" + ",".join(vcfList) + "'"
+
+        # try to put some analysis together
+        # arguments: <fileBasename> <numCorse> <list_of_vcf> <list_of_refFiles> <sample_size> <seed>
+        # analysis = CleanSplitAnalysis(uniqueBasename, numCores, vcfFiles, refFiles, [
+        #                            4, 4], random.randint(0, 99999999))
+        analysis = IsolationMigrationAnalysis(uniqueBasename, numCores, vcfFiles, refFiles, [
+                                   4, 4], random.randint(0, 99999999))
+        print("---------- COMMAND ----------")
+        # cmd = analysis.run()
+        cmd = analysis.realCmdLine ()
+        print(cmd)
+        ofs = open ("%s.sh" % uniqueBasename, "w")
+        ofs.write("#!/bin/bash\n")
+        ofs.write("#PBS -N %s\n" % uniqueBasename)
+        ofs.write("#PBS -S /bin/bash\n")
+        ofs.write("#PBS -l walltime=10:00:00\n")
+        ofs.write("#PBS -l nodes=1:ppn=%d\n" % numCores)
+        ofs.write("#PBS -l mem=16gb\n")
+        ofs.write("#PBS -o %s\n" % os.path.join (realBase, dirExtension, "%s.out" % uniqueBasename))
+        ofs.write("#PBS -e %s\n" % os.path.join (realBase, dirExtension, "%s.err" % uniqueBasename))
+        # try to change the workdir
+        ofs.write("cd $PBS_O_WORKDIR\n")
+        ofs.write (cmd + "\n")
+        ofs.close()
+        print("---------- MLE ----------")
+        # print (analysis.returnMLE())
+        # analysis.writeResultsCSV ("%s.csv" % uniqueBasename)
+
+        metafs.write ("qsub %s\n" % ("%s.sh" % uniqueBasename))
+    metafs.close()
+
+
+def plotVioStuff():
+
+    Nref = 10000
+    # plotName = "violinCleanSplit.pdf"
+    plotName = "violinIsolationMigration.pdf"
+    # titleString = 'clean split'
+    titleString = 'isolation with migration'
+    truth = [GenTimeToCoalTime (Nref, 2000),
+        DiploidSizeToCoalSize (Nref, 5000),
+        DiploidSizeToCoalSize (Nref, 5000),
+        PerGenMigToMigRate (Nref, 2e-5),
+        DiploidSizeToCoalSize (Nref, 10000)
+        ]
+    xLabels = ["T_div",
+        "N_1",
+        "N_2",
+        "migRate",
+        "N_A"
+        ]
+    # those are cical-output-files
+    # inFiles = ["/Users/steinrue/labsharecri/projects/coalHMMopionPiece/analysis/test/cleanSplit/tenDataSets/multiCleanSplit_%d.dical_out" % x for x in range(10)]
+    inFiles = ["/Users/steinrue/labsharecri/projects/coalHMMopionPiece/analysis/test/isolationMigration/tenDataSets/multiIsolationMigration_%d.dical_out" % x for x in range(10)]
+
+    # get the MLE from each file
+    mles = []
+    for thisFile in inFiles:
+        mles.append ((returnMLE (thisFile))[0])
+        assert (len(mles[-1]) == len(truth))
+
+    # now get log2 (estimate/truth)
+    logMle = []
+    for thisMle in mles:
+        logMle.append ([math.log2(thisMle[i]/truth[i]) for i in range(len(truth))])
+
+    # and some violins
+    plt.clf()
+    plt.title (titleString)
+    plt.ylabel ('log2 (estimate/truth)')
+    plt.xticks (range(1,len(xLabels)+1), xLabels)
+    ax = plt.gca()
+
+    ax.axhline (0, linestyle="dashed", color='black', linewidth=0.5)
+    # ax.set_xlim([10, 100000])
+    ax.set_ylim([-1, 1])
+
+
+    # transpose it
+    logMle = list(map(list, zip(*logMle)))
+    # actual plot
+    ax.violinplot (logMle, showmeans=False, showmedians=True)
+
+    plt.savefig(plotName)
+
+
 
 
 def main():
 
     # realAnalysis ()
 
-    # multiPopAnalysis ()
+    multiPopAnalysis ()
 
     # test()
 
     # plotStuff()
 
-    plotTrace()
+    # plotVioStuff()
+
+    # plotTrace()
+
+    # multiDataSetAnalysis()
+
+    # pass
 
 
 if __name__ == "__main__":
