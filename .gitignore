@@ -8,3 +8,4 @@ input.data
 *.config
 bak.dical.py
 weird_merger.dical.py
+*.svg
