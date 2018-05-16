@@ -916,11 +916,11 @@ class IsolationMigrationAnalysis:
 
     # metaNumStartPoints = 40
     # metaNumPoints = 12
-    metaNumPoints = 1
+    metaNumPoints = 3
     metaKeepBest = 1
-    metaNumIterations = 3
+    metaNumIterations = 4
     numEMiterations = 4
-    numIterationsMstep = 10
+    numIterationsMstep = 20
 
     cl = "lol"
     # cl = "pcl"
@@ -1022,7 +1022,7 @@ class IsolationMigrationAnalysis:
             "metaParallelEmSteps": str(1),
             "numberIterationsEM": self.numEMiterations,
             "numberIterationsMstep": self.numIterationsMstep,
-            # "nmFraction": 0.3,
+            "nmFraction": 0.3,
             "disableCoordinateWiseMStep": True,
             "printEmPath": True,
             # "intervalType": "simple",
@@ -1588,7 +1588,8 @@ def multiDataSetAnalysis():
     # set the directory
     # dirExtension = "projects/coalHMMopionPiece/analysis/test/cleanSplit"
     # dirExtension = "projects/coalHMMopionPiece/analysis/test/cleanSplit/tenDataSets"
-    dirExtension = "projects/coalHMMopionPiece/analysis/test/isolationMigration/tenDataSets"
+    # dirExtension = "projects/coalHMMopionPiece/analysis/test/isolationMigration/tenDataSets"
+    dirExtension = "projects/coalHMMopionPiece/analysis/test/isolationMigration/tenDataSetsToo"
     daDir = os.path.join(laptopBase, dirExtension)
     os.makedirs (daDir)
     os.chdir(daDir)
@@ -1717,7 +1718,7 @@ def main():
 
     # realAnalysis ()
 
-    multiPopAnalysis ()
+    # multiPopAnalysis ()
 
     # test()
 
@@ -1727,7 +1728,7 @@ def main():
 
     # plotTrace()
 
-    # multiDataSetAnalysis()
+    multiDataSetAnalysis()
 
     # pass
 
