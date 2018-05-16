@@ -73,8 +73,8 @@ class SimulationTask(luigi.Config):
 
     def local_target(self, *args):
         return GlobalConfig().local_target(
-                self.demography,
                 self.N,
+                self.demography,
                 self.seed,
                 *args)
 
@@ -181,6 +181,7 @@ class PlotMSMC(SimulationTask):
     def run(self):
         msmc2csv(MUTATION_RATE, 
                  GENERATION_TIME,
+                 self.demography,
                  self.input().path,
                  self.output().path)
 
@@ -287,6 +288,7 @@ class PlotSMC(SimulationTask):
                  pdf,
                  self.input().path)
         smc2csv(self.output().path, 
+                self.demography,
                 self.output().path)
 
 class PSMCCombiner(SimulationTask):
@@ -357,7 +359,7 @@ class EstimateSizeHistoryDical(SimulationTask):
         )
         dical_args = da.run()
         dical(**dical_args, _out=da.diCalOutputFileName)
-        da.writeResultsCSV(self.output().path)
+        da.writeResultsCSV(self.demography, self.output().path)
 
 
 @luigi.util.requires(EstimateSizeHistoryDical)
@@ -385,38 +387,34 @@ class PlotPSMC(SimulationTask):
                  "-p", 
                  base,
                  self.input().path)
-        psmc2csv(base + ".0.txt", self.output().path)
+        psmc2csv(base + ".0.txt",
+                 self.demography,
+                 self.output().path)
 
-class PlotAllCombined(luigi.WrapperTask):
+class PlotAllCombined(luigi.Task):
     N = luigi.IntParameter()
     n_replicates = luigi.IntParameter()
     def requires(self):
-        return [self.clone(PlotCombined, demography=demo)
-                for demo in demography.DEMOGRAPHIES]
-
-class PlotCombined(luigi.Task):
-    demography = luigi.Parameter()
-    N = luigi.IntParameter()
-    n_replicates = luigi.IntParameter()
-
-    def requires(self):
-        return [self.clone(cls, demography=self.demography, seed=1 + i)
+        return [self.clone(cls, demography=demo, seed=1 + i)
                 for i in range(self.n_replicates)
-                for cls in (PlotPSMC, PlotMSMC, PlotSMC, PlotDical)]
+                for cls in (PlotPSMC, PlotMSMC, PlotSMC, PlotDical)
+                for demo in demography.DEMOGRAPHIES]
 
     def output(self):
         return GlobalConfig().local_target(
-                self.demography,
                 self.N,
-                f"{self.demography}.pdf")
+                "results.pdf")
 
     def run(self):
-        demo = demography.Demography.factory(self.demography, self.N)
-        truth_csv = self.output().path[:-4] + "_truth.csv"
-        open(truth_csv, "wt").write(demo.to_csv(GENERATION_TIME))
+        paths = []
+        for demo in demography.DEMOGRAPHIES:
+            d = demography.Demography.factory(demo, self.N)
+            truth_csv = self.output().path[:-4] + f"{demo}_truth.csv"
+            paths.append(truth_csv)
+            open(truth_csv, "wt").write(d.to_csv(GENERATION_TIME))
+        paths += [f.path for f in self.input()]
         combine_plots(self.output().path,
-                      truth_csv,
-                      *[f.path for f in self.input()])
+                      *paths)
 
 
 class ManyEstimates(luigi.Config):

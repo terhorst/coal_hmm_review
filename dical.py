@@ -734,7 +734,7 @@ class PieceWiseConstantAnalysis:
         # and return it
         return (realMlePoint, maxLike)
 
-    def writeResultsCSV(self, filename):
+    def writeResultsCSV(self, demo, filename):
         # get the MLE
         (mlePoint, maxLike) = self.returnMLE()
 
@@ -745,8 +745,8 @@ class PieceWiseConstantAnalysis:
         assert (len(mlePoint) == len(epochTimesInGen))
         # now write it to file in hopefully right format
         open(filename, "wt").write(
-            "t,Ne,method\n" +
-            "\n".join([f"{et},{ml},dical" for et,
+            "t,Ne,method,demo\n" +
+            "\n".join([f"{et},{ml},diCal,{demo}" for et,
                        ml in zip(epochTimesInGen, mlePoint)])
         )
         # done
