@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 from cycler import cycler
 import numpy
 
-random.seed(4717)  # what is this for?
+random.seed(4719)  # what is this for?
 
 
 def writeIsolationMigrationDemographyFile(filename, migration, migrationStops, parameterList):
@@ -734,7 +734,7 @@ class PieceWiseConstantAnalysis:
         # and return it
         return (realMlePoint, maxLike)
 
-    def writeResultsCSV(self, filename):
+    def writeResultsCSV(self, demo, filename):
         # get the MLE
         (mlePoint, maxLike) = self.returnMLE()
 
@@ -745,8 +745,8 @@ class PieceWiseConstantAnalysis:
         assert (len(mlePoint) == len(epochTimesInGen))
         # now write it to file in hopefully right format
         open(filename, "wt").write(
-            "t,Ne,method\n" +
-            "\n".join([f"{et},{ml},dical" for et,
+            "t,Ne,method,demo\n" +
+            "\n".join([f"{et},{ml},diCal,{demo}" for et,
                        ml in zip(epochTimesInGen, mlePoint)])
         )
         # done
@@ -1537,7 +1537,7 @@ def multiPopAnalysis():
 
     # uniqueBasename = "migfishCleanSplitThree"
     # uniqueBasename = "migfishCleanSplitMultiNM03"
-    uniqueBasename = "migfishNoCoord"
+    uniqueBasename = "migfishSDtest"
 
 
     # dataDir = os.path.join(
@@ -1545,7 +1545,8 @@ def multiPopAnalysis():
     dataDir = os.path.join(
         realBase, "projects/coalHMMopionPiece/data/test/isolationMigration")
 
-    numContigs = 10
+    # numContigs = 10
+    numContigs = 1
 
     # we have a reference
     refFilename = os.path.join(dataDir, "output.ref")
@@ -1596,6 +1597,8 @@ def multiDataSetAnalysis():
     # dirExtension = "projects/coalHMMopionPiece/analysis/test/cleanSplit"
     # dirExtension = "projects/coalHMMopionPiece/analysis/test/cleanSplit/tenDataSets"
     # dirExtension = "projects/coalHMMopionPiece/analysis/test/isolationMigration/tenDataSets"
+    # dirExtension = "projects/coalHMMopionPiece/analysis/test/isolationMigration/tenDataSetsToo"
+    # dirExtension = "projects/coalHMMopionPiece/analysis/test/isolationMigration/tenDataSetsThree"
     dirExtension = "projects/coalHMMopionPiece/analysis/test/isolationMigration/tenDataSetsFive"
     daDir = os.path.join(laptopBase, dirExtension)
     os.makedirs (daDir)
@@ -1688,6 +1691,7 @@ def plotVioStuff():
     # inFiles = ["/Users/steinrue/labsharecri/projects/coalHMMopionPiece/analysis/test/cleanSplit/tenDataSets/multiCleanSplit_%d.dical_out" % x for x in range(10)]
     # inFiles = ["/Users/steinrue/labsharecri/projects/coalHMMopionPiece/analysis/test/isolationMigration/tenDataSets/multiIsolationMigration_%d.dical_out" % x for x in range(10)]
     # inFiles = ["/Users/steinrue/labsharecri/projects/coalHMMopionPiece/analysis/test/isolationMigration/tenDataSetsThree/multiIsolationMigration_%d.dical_out" % x for x in range(10)]
+    # inFiles = ["/Users/steinrue/labsharecri/projects/coalHMMopionPiece/analysis/test/isolationMigration/tenDataSetsThree/multiIsolationMigration_%d.dical_out" % x for x in range(10)]
     inFiles = ["/Users/steinrue/labsharecri/projects/coalHMMopionPiece/analysis/test/isolationMigration/tenDataSetsFour/multiIsolationMigration_%d.dical_out" % x for x in range(10)]
 
     # get the MLE from each file
@@ -1697,8 +1701,10 @@ def plotVioStuff():
         assert (len(mles[-1]) == len(truth))
 
     # now get log2 (estimate/truth)
+    print (truth)
     logMle = []
     for thisMle in mles:
+        print (thisMle)
         logMle.append ([math.log2(thisMle[i]/truth[i]) for i in range(len(truth))])
 
     # and some violins
@@ -1711,9 +1717,9 @@ def plotVioStuff():
     ax.axhline (0, linestyle="dashed", color='black', linewidth=0.5)
     # ax.set_xlim([10, 100000])
     # ax.set_ylim([-1, 1])
+    # ax.set_ylim([-2, 2])
     # ax.set_ylim([-3, 3])
     ax.set_ylim([-4, 4])
-
 
     # transpose it
     logMle = list(map(list, zip(*logMle)))
@@ -1740,11 +1746,11 @@ def main():
 
     # plotStuff()
 
-    # plotVioStuff()
+    plotVioStuff()
 
     # plotTrace()
 
-    multiDataSetAnalysis()
+    # multiDataSetAnalysis()
 
     # pass
 
