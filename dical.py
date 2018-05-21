@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 from cycler import cycler
 import numpy
 
-random.seed(4715)  # what is this for?
+random.seed(4716)  # what is this for?
 
 
 def writeIsolationMigrationDemographyFile(filename, migration, migrationStops, parameterList):
@@ -941,7 +941,8 @@ class IsolationMigrationAnalysis:
 
     yearsPerGen = 25
 
-    jarFile = "cleanDiCal2.jar"
+    # jarFile = "cleanDiCal2.jar"
+    jarFile = "sdDiCal2.jar"
 
     def __init__(self, uniqueBasename, numCores, vcfFiles, refFiles, sampleSizes, randomSeed):
         self.vcfFileList = vcfFiles
@@ -1020,6 +1021,7 @@ class IsolationMigrationAnalysis:
             "metaKeepBest": str(self.metaKeepBest),
             "metaNumPoints": str(self.metaNumPoints),
             "metaParallelEmSteps": str(1),
+            "metaStretchProportion": 0.5,
             "numberIterationsEM": self.numEMiterations,
             "numberIterationsMstep": self.numIterationsMstep,
             "nmFraction": 0.3,
@@ -1530,7 +1532,7 @@ def multiPopAnalysis():
 
     # uniqueBasename = "migfishCleanSplitThree"
     # uniqueBasename = "migfishCleanSplitMultiNM03"
-    uniqueBasename = "migfishNoCoord"
+    uniqueBasename = "migfishSDtest"
 
 
     # dataDir = os.path.join(
@@ -1538,7 +1540,8 @@ def multiPopAnalysis():
     dataDir = os.path.join(
         realBase, "projects/coalHMMopionPiece/data/test/isolationMigration")
 
-    numContigs = 10
+    # numContigs = 10
+    numContigs = 1
 
     # we have a reference
     refFilename = os.path.join(dataDir, "output.ref")
@@ -1589,7 +1592,8 @@ def multiDataSetAnalysis():
     # dirExtension = "projects/coalHMMopionPiece/analysis/test/cleanSplit"
     # dirExtension = "projects/coalHMMopionPiece/analysis/test/cleanSplit/tenDataSets"
     # dirExtension = "projects/coalHMMopionPiece/analysis/test/isolationMigration/tenDataSets"
-    dirExtension = "projects/coalHMMopionPiece/analysis/test/isolationMigration/tenDataSetsToo"
+    # dirExtension = "projects/coalHMMopionPiece/analysis/test/isolationMigration/tenDataSetsToo"
+    dirExtension = "projects/coalHMMopionPiece/analysis/test/isolationMigration/tenDataSetsThree"
     daDir = os.path.join(laptopBase, dirExtension)
     os.makedirs (daDir)
     os.chdir(daDir)
@@ -1679,7 +1683,8 @@ def plotVioStuff():
         ]
     # those are cical-output-files
     # inFiles = ["/Users/steinrue/labsharecri/projects/coalHMMopionPiece/analysis/test/cleanSplit/tenDataSets/multiCleanSplit_%d.dical_out" % x for x in range(10)]
-    inFiles = ["/Users/steinrue/labsharecri/projects/coalHMMopionPiece/analysis/test/isolationMigration/tenDataSets/multiIsolationMigration_%d.dical_out" % x for x in range(10)]
+    # inFiles = ["/Users/steinrue/labsharecri/projects/coalHMMopionPiece/analysis/test/isolationMigration/tenDataSets/multiIsolationMigration_%d.dical_out" % x for x in range(10)]
+    inFiles = ["/Users/steinrue/labsharecri/projects/coalHMMopionPiece/analysis/test/isolationMigration/tenDataSetsThree/multiIsolationMigration_%d.dical_out" % x for x in range(10)]
 
     # get the MLE from each file
     mles = []
@@ -1688,8 +1693,10 @@ def plotVioStuff():
         assert (len(mles[-1]) == len(truth))
 
     # now get log2 (estimate/truth)
+    print (truth)
     logMle = []
     for thisMle in mles:
+        print (thisMle)
         logMle.append ([math.log2(thisMle[i]/truth[i]) for i in range(len(truth))])
 
     # and some violins
@@ -1701,7 +1708,9 @@ def plotVioStuff():
 
     ax.axhline (0, linestyle="dashed", color='black', linewidth=0.5)
     # ax.set_xlim([10, 100000])
-    ax.set_ylim([-1, 1])
+    # ax.set_ylim([-1, 1])
+    # ax.set_ylim([-2, 2])
+    ax.set_ylim([-3, 3])
 
 
     # transpose it
@@ -1724,11 +1733,11 @@ def main():
 
     # plotStuff()
 
-    # plotVioStuff()
+    plotVioStuff()
 
     # plotTrace()
 
-    multiDataSetAnalysis()
+    # multiDataSetAnalysis()
 
     # pass
 
