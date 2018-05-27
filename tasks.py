@@ -38,6 +38,7 @@ else:
     Command = LocalCommand
 
 smc_estimate = Command(cores=8)("smc++").estimate.bake(cores=8)
+smc_twostep = Command(cores=8)("smc++").twostep.bake(cores=8)
 psmc = Command()(PSMC_PATH + "/psmc").bake("-N", 20, "-p", "4+20*3+4")
 msmc = Command(cores=8)(MSMC_PATH + "/msmc_1.0.0_linux64bit").bake('-t', 8)
 dical = Command(cores=8)("java").bake('-Xmx16G', '-jar', 'cleanDiCal2.jar', parallel=8)
@@ -259,17 +260,7 @@ class EstimateSizeHistorySMC(SimulationTask):
         samples = self.demo.samples()
         out_path = os.path.dirname(self.output().path)
         initial_path = os.path.join(out_path, "initial")
-        smc_estimate('-v', 
-            '-o', initial_path,
-            '--em-iterations', 2,
-            '--knots', 24,
-            "--cores", 2,
-            1.25e-8,
-            *[f.path for f in self.input()])
-        smc_estimate('-v',
-            '-o', out_path,
-            '--initial-model', os.path.join(initial_path, 'model.final.json'),
-            "--cores", 2,
+        smc_twostep('-v', '-o', out_path,
             "--timepoints", "200,100000",
             1.25e-8,
             *[f.path for f in self.input()])
