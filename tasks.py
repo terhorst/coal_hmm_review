@@ -348,7 +348,7 @@ class EstimateSizeHistoryDical(SimulationTask):
         )
         dical_args = da.run()
         dical(**dical_args, _out=da.diCalOutputFileName)
-        da.writeResultsCSV(self.output().path)
+        da.writeResultsCSV(self.demography, self.output().path)
 
 
 @luigi.util.requires(EstimateSizeHistoryDical)
