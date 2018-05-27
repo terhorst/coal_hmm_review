@@ -5,7 +5,6 @@ import numpy as np
 
 @attr.s
 class Demography:
-    name = attr.ib()
     events = attr.ib()
     N = attr.ib()
 
@@ -27,12 +26,12 @@ class Demography:
         return [msp.PopulationConfiguration(sample_size=nn) for nn in self.N]
 
     def to_csv(self, generation_time):
-        return self.events.to_csv(self.name, generation_time)
+        return self.events.to_csv(generation_time)
 
     @classmethod
     def factory(cls, demo, N):
         events = DEMOGRAPHIES[demo]
-        return cls(demo, events, [N] * events.npop)
+        return cls(events, [N] * events.npop)
 
 @attr.s
 class DemographicEvents:
@@ -42,7 +41,7 @@ class DemographicEvents:
     def __iter__(self):
         return iter(self.events)
     
-    def to_csv(self, name, generation_time):
+    def to_csv(self, generation_time):
         out = []
         first = True
         for pid in range(self.npop):
@@ -53,19 +52,19 @@ class DemographicEvents:
                     return ev.source == pid
                 return False
             events_i = [ev for ev in self.events if pred(ev)]
-            out.append(_events_to_csv(name, events_i, generation_time, first))
+            out.append(_events_to_csv(events_i, generation_time, first))
             first = False
         return "\n".join(out)
             
 
-def _events_to_csv(name, events, generation_time, header=True):
-    out = ["t,Ne,method,demo"] * header
+def _events_to_csv(events, generation_time, header=True):
+    out = ["t,Ne,method"] * header
     ev = events[0]
     Ne = ev.initial_size
     g = ev.growth_rate
     t = ev.time
     tag = f"truth{ev.population}"
-    out.append(f"{t * generation_time},{Ne},{tag},{name}")
+    out.append(f"{t * generation_time},{Ne},{tag}")
     for ev in events[1:]:
         if ev.type == 'population_parameters_change':
             if g != 0:
@@ -73,13 +72,13 @@ def _events_to_csv(name, events, generation_time, header=True):
             else:
                 tt = [ev.time]
             Ne_t = Ne * np.exp(-g * tt)
-            out += [f"{ttt * generation_time},{Ne_tt},{tag},{name}" for ttt, Ne_tt in zip(tt, Ne_t)]
+            out += [f"{ttt * generation_time},{Ne_tt},{tag}" for ttt, Ne_tt in zip(tt, Ne_t)]
             Ne = ev.initial_size
             g = ev.growth_rate
         t = ev.time
-        out.append(f"{t * generation_time},{Ne},{tag},{name}")
+        out.append(f"{t * generation_time},{Ne},{tag}")
     if ev.type == "population_parameters_change":  # this assumes the joined-on lineage comes first
-        out.append(f"{1e7},{Ne},{tag},{name}")
+        out.append(f"{1e7},{Ne},{tag}")
     return "\n".join(out)
 
 DEMOGRAPHIES = {

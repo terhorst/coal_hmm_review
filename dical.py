@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 from cycler import cycler
 import numpy
 
-random.seed(4715)  # what is this for?
+random.seed(4719)  # what is this for?
 
 
 def writeIsolationMigrationDemographyFile(filename, migration, migrationStops, parameterList):
@@ -916,9 +916,9 @@ class IsolationMigrationAnalysis:
 
     # metaNumStartPoints = 40
     # metaNumPoints = 12
-    metaNumPoints = 3
+    metaNumPoints = 4
     metaKeepBest = 1
-    metaNumIterations = 4
+    metaNumIterations = 6
     numEMiterations = 4
     numIterationsMstep = 20
 
@@ -941,7 +941,8 @@ class IsolationMigrationAnalysis:
 
     yearsPerGen = 25
 
-    jarFile = "cleanDiCal2.jar"
+    # jarFile = "cleanDiCal2.jar"
+    jarFile = "sdDiCal2.jar"
 
     def __init__(self, uniqueBasename, numCores, vcfFiles, refFiles, sampleSizes, randomSeed):
         self.vcfFileList = vcfFiles
@@ -968,9 +969,14 @@ class IsolationMigrationAnalysis:
         self.metaStartFile = "%s.rand" % uniqueBasename
         ofs = open (self.metaStartFile, "w")
         # give start points directly
-        ofs.write ("\t".join([str(x) for x in [0.05, 1.0, 1.0, 0.1, 1.0]]) + "\n")
-        ofs.write ("\t".join([str(x) for x in [0.25, 1.0, 1.0, 0.1, 1.0]]) + "\n")
+        ofs.write ("\t".join([str(x) for x in [0.05, 1.0, 1.0, 0.1,  1.0]]) + "\n")
+        ofs.write ("\t".join([str(x) for x in [0.1,  1.0, 1.0, 0.1,  1.0]]) + "\n")
+        ofs.write ("\t".join([str(x) for x in [0.25, 1.0, 1.0, 0.1,  1.0]]) + "\n")
+        ofs.write ("\t".join([str(x) for x in [0.05, 1.0, 1.0, 1.0,  1.0]]) + "\n")
+        ofs.write ("\t".join([str(x) for x in [0.1,  1.0, 1.0, 1.0,  1.0]]) + "\n")
+        ofs.write ("\t".join([str(x) for x in [0.25, 1.0, 1.0, 1.0,  1.0]]) + "\n")
         ofs.write ("\t".join([str(x) for x in [0.05, 1.0, 1.0, 10.0, 1.0]]) + "\n")
+        ofs.write ("\t".join([str(x) for x in [0.1,  1.0, 1.0, 10.0, 1.0]]) + "\n")
         ofs.write ("\t".join([str(x) for x in [0.25, 1.0, 1.0, 10.0, 1.0]]) + "\n")
         ofs.close ()
 
@@ -989,17 +995,17 @@ class IsolationMigrationAnalysis:
         # self.startPointString = ",".join([("%.8f" % x) for x in point])
 
         # param file
-        writeMutRecoParameterFile(self.paramFile, theta(
+        writeMutRecoParameterFile (self.paramFile, theta(
             self.Nref, self.mu), rho(self.Nref, self.r))
 
         # config file
         # numLoci doesn't even matter, also, two alleles and two deme
-        writeConfigFile(self.configFile, 123456, 2, 2, sampleSizes, [0,0,0])
+        writeConfigFile (self.configFile, 123456, 2, 2, sampleSizes, [0,0,0])
 
         # demography file for clean split
         # writeIsolationMigrationDemographyFile(self.demoFile, False, True, [
         #                                       "?%d" % x for x in range(4)])
-        writeIsolationMigrationDemographyFile(self.demoFile, True, False, [
+        writeIsolationMigrationDemographyFile (self.demoFile, True, False, [
                                       "?%d" % x for x in range(5)])
 
 
@@ -1020,6 +1026,7 @@ class IsolationMigrationAnalysis:
             "metaKeepBest": str(self.metaKeepBest),
             "metaNumPoints": str(self.metaNumPoints),
             "metaParallelEmSteps": str(1),
+            "metaStretchProportion": 0.5,
             "numberIterationsEM": self.numEMiterations,
             "numberIterationsMstep": self.numIterationsMstep,
             "nmFraction": 0.3,
@@ -1530,7 +1537,7 @@ def multiPopAnalysis():
 
     # uniqueBasename = "migfishCleanSplitThree"
     # uniqueBasename = "migfishCleanSplitMultiNM03"
-    uniqueBasename = "migfishNoCoord"
+    uniqueBasename = "migfishSDtest"
 
 
     # dataDir = os.path.join(
@@ -1538,7 +1545,8 @@ def multiPopAnalysis():
     dataDir = os.path.join(
         realBase, "projects/coalHMMopionPiece/data/test/isolationMigration")
 
-    numContigs = 10
+    # numContigs = 10
+    numContigs = 1
 
     # we have a reference
     refFilename = os.path.join(dataDir, "output.ref")
@@ -1566,7 +1574,7 @@ def multiPopAnalysis():
     ofs.write("#!/bin/bash\n")
     ofs.write("#PBS -N %s\n" % uniqueBasename)
     ofs.write("#PBS -S /bin/bash\n")
-    ofs.write("#PBS -l walltime=10:00:00\n")
+    ofs.write("#PBS -l walltime=20:00:00\n")
     ofs.write("#PBS -l nodes=1:ppn=%d\n" % numCores)
     ofs.write("#PBS -l mem=16gb\n")
     ofs.write("#PBS -o %s\n" % os.path.join (realBase, dirExtension, "%s.out" % uniqueBasename))
@@ -1589,7 +1597,9 @@ def multiDataSetAnalysis():
     # dirExtension = "projects/coalHMMopionPiece/analysis/test/cleanSplit"
     # dirExtension = "projects/coalHMMopionPiece/analysis/test/cleanSplit/tenDataSets"
     # dirExtension = "projects/coalHMMopionPiece/analysis/test/isolationMigration/tenDataSets"
-    dirExtension = "projects/coalHMMopionPiece/analysis/test/isolationMigration/tenDataSetsToo"
+    # dirExtension = "projects/coalHMMopionPiece/analysis/test/isolationMigration/tenDataSetsToo"
+    # dirExtension = "projects/coalHMMopionPiece/analysis/test/isolationMigration/tenDataSetsThree"
+    dirExtension = "projects/coalHMMopionPiece/analysis/test/isolationMigration/tenDataSetsFive"
     daDir = os.path.join(laptopBase, dirExtension)
     os.makedirs (daDir)
     os.chdir(daDir)
@@ -1641,7 +1651,7 @@ def multiDataSetAnalysis():
         ofs.write("#!/bin/bash\n")
         ofs.write("#PBS -N %s\n" % uniqueBasename)
         ofs.write("#PBS -S /bin/bash\n")
-        ofs.write("#PBS -l walltime=10:00:00\n")
+        ofs.write("#PBS -l walltime=20:00:00\n")
         ofs.write("#PBS -l nodes=1:ppn=%d\n" % numCores)
         ofs.write("#PBS -l mem=16gb\n")
         ofs.write("#PBS -o %s\n" % os.path.join (realBase, dirExtension, "%s.out" % uniqueBasename))
@@ -1671,15 +1681,18 @@ def plotVioStuff():
         PerGenMigToMigRate (Nref, 2e-5),
         DiploidSizeToCoalSize (Nref, 10000)
         ]
-    xLabels = ["T_div",
-        "N_1",
-        "N_2",
-        "migRate",
-        "N_A"
+    xLabels = ["T_div\n2000 gen",
+        "N_1\n5000",
+        "N_2\n5000",
+        "migRate\n0.00002",
+        "N_A\n10000"
         ]
     # those are cical-output-files
     # inFiles = ["/Users/steinrue/labsharecri/projects/coalHMMopionPiece/analysis/test/cleanSplit/tenDataSets/multiCleanSplit_%d.dical_out" % x for x in range(10)]
-    inFiles = ["/Users/steinrue/labsharecri/projects/coalHMMopionPiece/analysis/test/isolationMigration/tenDataSets/multiIsolationMigration_%d.dical_out" % x for x in range(10)]
+    # inFiles = ["/Users/steinrue/labsharecri/projects/coalHMMopionPiece/analysis/test/isolationMigration/tenDataSets/multiIsolationMigration_%d.dical_out" % x for x in range(10)]
+    # inFiles = ["/Users/steinrue/labsharecri/projects/coalHMMopionPiece/analysis/test/isolationMigration/tenDataSetsThree/multiIsolationMigration_%d.dical_out" % x for x in range(10)]
+    # inFiles = ["/Users/steinrue/labsharecri/projects/coalHMMopionPiece/analysis/test/isolationMigration/tenDataSetsThree/multiIsolationMigration_%d.dical_out" % x for x in range(10)]
+    inFiles = ["/Users/steinrue/labsharecri/projects/coalHMMopionPiece/analysis/test/isolationMigration/tenDataSetsFour/multiIsolationMigration_%d.dical_out" % x for x in range(10)]
 
     # get the MLE from each file
     mles = []
@@ -1688,8 +1701,10 @@ def plotVioStuff():
         assert (len(mles[-1]) == len(truth))
 
     # now get log2 (estimate/truth)
+    print (truth)
     logMle = []
     for thisMle in mles:
+        print (thisMle)
         logMle.append ([math.log2(thisMle[i]/truth[i]) for i in range(len(truth))])
 
     # and some violins
@@ -1701,13 +1716,20 @@ def plotVioStuff():
 
     ax.axhline (0, linestyle="dashed", color='black', linewidth=0.5)
     # ax.set_xlim([10, 100000])
-    ax.set_ylim([-1, 1])
-
+    # ax.set_ylim([-1, 1])
+    # ax.set_ylim([-2, 2])
+    # ax.set_ylim([-3, 3])
+    ax.set_ylim([-4, 4])
 
     # transpose it
     logMle = list(map(list, zip(*logMle)))
     # actual plot
     ax.violinplot (logMle, showmeans=False, showmedians=True)
+
+    # add some starting points
+    plt.plot ([x for x in range(1,6)], [math.log2(0.25/0.1),1,1,math.log2(10/0.8),0], "ro", color="red")
+    plt.plot ([x for x in range(1,6)], [math.log2(0.1/0.1),1,1,math.log2(1/0.8),0], "ro", color="red")
+    plt.plot ([x for x in range(1,6)], [math.log2(0.05/0.1),1,1,math.log2(0.1/0.8),0], "ro", color="red")
 
     plt.savefig(plotName)
 
@@ -1724,11 +1746,11 @@ def main():
 
     # plotStuff()
 
-    # plotVioStuff()
+    plotVioStuff()
 
     # plotTrace()
 
-    multiDataSetAnalysis()
+    # multiDataSetAnalysis()
 
     # pass
 
