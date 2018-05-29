@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 from cycler import cycler
 import numpy
 
-random.seed(4716)  # what is this for?
+random.seed(4719)  # what is this for?
 
 
 def writeIsolationMigrationDemographyFile(filename, migration, migrationStops, parameterList):
@@ -1598,7 +1598,8 @@ def multiDataSetAnalysis():
     # dirExtension = "projects/coalHMMopionPiece/analysis/test/cleanSplit/tenDataSets"
     # dirExtension = "projects/coalHMMopionPiece/analysis/test/isolationMigration/tenDataSets"
     # dirExtension = "projects/coalHMMopionPiece/analysis/test/isolationMigration/tenDataSetsToo"
-    dirExtension = "projects/coalHMMopionPiece/analysis/test/isolationMigration/tenDataSetsThree"
+    # dirExtension = "projects/coalHMMopionPiece/analysis/test/isolationMigration/tenDataSetsThree"
+    dirExtension = "projects/coalHMMopionPiece/analysis/test/isolationMigration/tenDataSetsFive"
     daDir = os.path.join(laptopBase, dirExtension)
     os.makedirs (daDir)
     os.chdir(daDir)
@@ -1689,7 +1690,9 @@ def plotVioStuff():
     # those are cical-output-files
     # inFiles = ["/Users/steinrue/labsharecri/projects/coalHMMopionPiece/analysis/test/cleanSplit/tenDataSets/multiCleanSplit_%d.dical_out" % x for x in range(10)]
     # inFiles = ["/Users/steinrue/labsharecri/projects/coalHMMopionPiece/analysis/test/isolationMigration/tenDataSets/multiIsolationMigration_%d.dical_out" % x for x in range(10)]
-    inFiles = ["/Users/steinrue/labsharecri/projects/coalHMMopionPiece/analysis/test/isolationMigration/tenDataSetsThree/multiIsolationMigration_%d.dical_out" % x for x in range(10)]
+    # inFiles = ["/Users/steinrue/labsharecri/projects/coalHMMopionPiece/analysis/test/isolationMigration/tenDataSetsThree/multiIsolationMigration_%d.dical_out" % x for x in range(10)]
+    # inFiles = ["/Users/steinrue/labsharecri/projects/coalHMMopionPiece/analysis/test/isolationMigration/tenDataSetsThree/multiIsolationMigration_%d.dical_out" % x for x in range(10)]
+    inFiles = ["/Users/steinrue/labsharecri/projects/coalHMMopionPiece/analysis/test/isolationMigration/tenDataSetsFour/multiIsolationMigration_%d.dical_out" % x for x in range(10)]
 
     # get the MLE from each file
     mles = []
@@ -1715,8 +1718,8 @@ def plotVioStuff():
     # ax.set_xlim([10, 100000])
     # ax.set_ylim([-1, 1])
     # ax.set_ylim([-2, 2])
-    ax.set_ylim([-3, 3])
-
+    # ax.set_ylim([-3, 3])
+    ax.set_ylim([-4, 4])
 
     # transpose it
     logMle = list(map(list, zip(*logMle)))
