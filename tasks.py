@@ -433,6 +433,7 @@ class _PlotCombined(luigi.Task):
         paths += [f.path for f in self.input()]
         combine_plots(self.output().path, *paths)
 
+MSMC_SKIP = [("bottleneck", 1)]
 
 class PlotAll(_PlotCombined):
     n_replicates = luigi.IntParameter()
@@ -440,9 +441,10 @@ class PlotAll(_PlotCombined):
     def requires(self):
         return [
             self.clone(cls, demography=demo, seed=i)
-            for cls in (PlotPSMC, PlotSMC, PlotDical)
+            for cls in (PlotPSMC, PlotMSMC, PlotSMC, PlotDical)
             for demo in demography.DEMOGRAPHIES
             for i in range(self.n_replicates)
+            if any([cls is not PlotMSMC, (demo, i) not in MSMC_SKIP])
         ]
 
     def output(self):
@@ -457,6 +459,7 @@ class PlotOne(_PlotCombined):
             self.clone(cls, demography=demo)
             for cls in (PlotPSMC, PlotMSMC, PlotSMC, PlotDical)
             for demo in demography.DEMOGRAPHIES
+            if any([cls is not PlotMSMC, (demo, self.seed) not in MSMC_SKIP])
         ]
 
     def output(self):
