@@ -295,12 +295,9 @@ class EstimateSizeHistorySMC(SimulationTask):
         initial_path = os.path.join(out_path, "initial")
         smc_twostep(
             "-v",
-            "-o",
-            out_path,
-            "--timepoints",
-            "50,100000",
-            "--spline",
-            "pchip",
+            "-o", out_path,
+            "--timepoints", 33,
+            "--folds", 8,
             1.25e-8,
             *[f.path for f in self.input()],
         )
@@ -441,7 +438,7 @@ class PlotAll(_PlotCombined):
     def requires(self):
         return [
             self.clone(cls, demography=demo, seed=i)
-            for cls in (PlotPSMC, PlotMSMC, PlotSMC, PlotDical)
+            for cls in (PlotPSMC, PlotSMC, PlotDical)
             for demo in demography.DEMOGRAPHIES
             for i in range(self.n_replicates)
             if any([cls is not PlotMSMC, (demo, i) not in MSMC_SKIP])
