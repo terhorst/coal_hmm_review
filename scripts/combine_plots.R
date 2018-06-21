@@ -15,12 +15,13 @@ df = args[-1] %>%
 write_csv(df, stringr::str_c(out, ".csv"))
 df_truth = df %>% filter(stringr::str_sub(method, 0, 5) == "truth")
 df_est = df %>% filter(stringr::str_sub(method, 0, 5) != "truth")
-extended = df_est %>% group_by(method) %>% top_n(1, t) %>% mutate(t=max(t, 1e7)) %>% bind_rows(df_est)
+extended = df_est %>% group_by(method) %>% top_n(1, t) %>% mutate(t=max(t, 4.99e6)) %>% bind_rows(df_est)
 # extended = mutate(extended, t = pmax(t, 10)) %>% print(n=Inf)
-df_truth = mutate(df_truth, t = pmax(t, 10))
+df_truth = mutate(df_truth, t = pmin(pmax(t, 1e3), 4.99e6))
 p = ggplot(extended, aes(t, Ne, group=interaction(i, Method), color=Method)) + geom_step(alpha=1/3) +
       scale_x_log10(breaks = trans_breaks("log10", function(x) 10^x),
-              labels = trans_format("log10", math_format(10^.x))) +
+              labels = trans_format("log10", math_format(10^.x)),
+              limits = c(1e3, 5e6)) +
       scale_y_log10(breaks = trans_breaks("log10", function(x) 10^x, n = 3),
               labels = trans_format("log10", math_format(10^.x))) +
       theme_minimal() + geom_step(data=df_truth, color="black", linetype="dashed") +
