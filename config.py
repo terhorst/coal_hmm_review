@@ -5,8 +5,8 @@ import os
 
 HPC = os.environ.get("HPC", False)
 print("HPC mode:", HPC)
-PSMC_PATH = os.environ.get("PSMC_PATH", "/scratch/terhorst/psmc")
-MSMC_PATH = os.environ.get("MSMC_PATH", "/scratch/terhorst/msmc")
+PSMC_PATH = os.environ.get("PSMC_PATH", "/tmp/coal_hmm_review/psmc")
+MSMC_PATH = os.environ.get("MSMC_PATH", "/tmp/coal_hmm_review/msmc")
 
 MUTATION_RATE = 1.25e-8
 RECOMBINATION_RATE = MUTATION_RATE / 10.

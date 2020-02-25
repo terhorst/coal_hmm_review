@@ -40,16 +40,15 @@ else:
     Command = LocalCommand
 
 smc_estimate = Command(cores=8)("smc++").estimate.bake(cores=8)
-smc_twostep = Command(cores=8)("smc++").twostep.bake(cores=8)
-psmc = Command()(PSMC_PATH + "/psmc").bake("-N", 20, "-p", "4+20*3+4")
-msmc = Command(cores=8)(MSMC_PATH + "/msmc_1.0.0_linux64bit").bake("-t", 8)
+psmc = Command()(os.path.join(PSMC_PATH, "psmc")).bake("-N", 20, "-p", "4+20*3+4")
+msmc = Command(cores=8)(os.path.join(MSMC_PATH, "msmc")).bake("-t", 8)
 dical = Command(cores=8)("java").bake("-Xmx16G", "-jar", "cleanDiCal2.jar", parallel=8)
 vcf2smc = Command()("smc++").vcf2smc
 run_msprime = Command()(os.path.join(basedir, "scripts", "run_msprime.py"))
 
 # use best fitting mdl
-psmcplot = sh.Command(PSMC_PATH + "/utils/psmc_plot.pl").bake("-n", 0)
-multihet = sh.Command(MSMC_PATH + "/generate_multihetsep.py").bake(_no_err=True)
+psmcplot = sh.Command(os.path.join(PSMC_PATH, "utils", "psmc_plot.pl")).bake("-n", 0)
+multihet = sh.Command(os.path.join(MSMC_PATH, "tools", "generate_multihetsep.py")).bake(_no_err=True)
 msmc2csv = sh.Command(os.path.join(basedir, "scripts", "msmc2csv.R"))
 psmc2csv = sh.Command(os.path.join(basedir, "scripts", "psmc2csv.R"))
 smc2csv = sh.Command(os.path.join(basedir, "scripts", "smc2csv.R"))
@@ -293,11 +292,10 @@ class EstimateSizeHistorySMC(SimulationTask):
         samples = self.demo.samples()
         out_path = os.path.dirname(self.output().path)
         initial_path = os.path.join(out_path, "initial")
-        smc_twostep(
+        smc_estimate(
             "-v",
             "-o", out_path,
             "--timepoints", 33,
-            "--folds", 8,
             1.25e-8,
             *[f.path for f in self.input()],
         )
